@@ -1,5 +1,6 @@
 import subprocess
 import re
+import argparse
 
 
 class Frame:
@@ -102,7 +103,11 @@ def get_parallel_stacks(threads, current_function=None, depth=0):
 
 
 def main():
-    process_id = 13552
+    arg_parser = argparse.ArgumentParser(description='Parallel stacks')
+    arg_parser.add_argument('-p', '--pid', type=int, required=True, help='a process ID')
+    args = arg_parser.parse_args()
+
+    process_id = args.pid
     gdb_command = ['gdb', '--batch', '-ex', 'thread apply all bt', '-pid', str(process_id)]
     gdb_result = subprocess.run(gdb_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     gdb_output = gdb_result.stdout.decode('utf-8')
@@ -114,4 +119,5 @@ def main():
     print(tree)
 
 
-main()
+if __name__ == "__main__":
+    main()
