@@ -69,21 +69,14 @@ class Node:
         self.function = None
         self.nodes = []
         self.depth = 0
-
-    def __str__(self):
-        result = ''
-        if self.function:
-            result += '{}{}'.format('  ' * self.depth, self.function)
-        result += '\n'
-        for node in self.nodes:
-            result += str(node)
-        return result
+        self.threads = []
 
 
 def get_parallel_stacks(threads, current_function=None, depth=0):
     node = Node()
     node.depth = depth
     node.function = current_function
+    node.threads = threads
     function_threads = {}
     level = -depth - 1
     for thread in threads:
@@ -102,6 +95,32 @@ def get_parallel_stacks(threads, current_function=None, depth=0):
     return node
 
 
+def print_parallel_stack(node, first_node=True, indent='', last_node=False):
+    base_indent = '   '
+    thread_indent = ''
+    before_thread_indent = ''
+    if indent != '':
+        before_thread_indent = indent + '│'
+        thread_indent = indent + ('╰' if last_node else '├')
+        function_indent = indent + ('' if last_node else '│') + base_indent
+    if first_node:
+        thread_count = len(node.threads)
+        print(before_thread_indent)
+        print('{}Threads: {}'.format(thread_indent, thread_count))
+    if node.function:
+        print('{}{}'.format(function_indent, node.function))
+    if len(node.nodes) == 1:
+        print_parallel_stack(node.nodes[0], False, indent, last_node)
+        return
+    last_i = len(node.nodes) - 1
+    if indent == '' or last_node:
+        indent = base_indent
+    else:
+        indent += '│' + base_indent
+    for i in range(len(node.nodes)):
+        print_parallel_stack(node.nodes[i], True, indent, i == last_i)
+
+
 def main():
     arg_parser = argparse.ArgumentParser(description='Parallel stacks')
     arg_parser.add_argument('-p', '--pid', type=int, required=True, help='a process ID')
@@ -116,7 +135,7 @@ def main():
         print(thread)
 
     tree = get_parallel_stacks(threads)
-    print(tree)
+    print_parallel_stack(tree)
 
 
 if __name__ == "__main__":
