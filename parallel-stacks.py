@@ -1,6 +1,8 @@
 import subprocess
 import re
 import argparse
+from graphviz import Digraph
+import html
 
 
 class Frame:
@@ -121,6 +123,58 @@ def print_parallel_stack(node, first_node=True, indent='', last_node=False):
         print_parallel_stack(node.nodes[i], True, indent, i == last_i)
 
 
+class Stack:
+    def __init__(self):
+        self.functions = []
+        self.stacks = []
+        self.thread_count = []
+
+
+def fill_stack(node, stack):
+    stack.thread_count = len(node.threads)
+    if node.function:
+        stack.functions.append(node.function)
+    if len(node.nodes) == 1:
+        fill_stack(node.nodes[0], stack)
+        return
+    for child_node in node.nodes:
+        child_stack = Stack()
+        fill_stack(child_node, child_stack)
+        stack.stacks.append(child_stack)
+    assert len(stack.stacks) == 0 or len(stack.stacks) > 1
+
+
+def add_stack_to_graph(dot, stack, node_id=0, parent_node_name=None):
+    rows = ''
+    node_name = None
+    if len(stack.functions):
+        row_template = '<tr><td align="{}">{}</td></tr>'
+        rows += row_template.format('right', '<b>{} Threads</b>'.format(stack.thread_count))
+        for function in reversed(stack.functions):
+            rows += row_template.format('left', '<font color="darkgreen">{}</font>'.format(html.escape(function)))
+        table = '<table BORDER="0" CELLBORDER="1" CELLSPACING="0">{}</table>'.format(rows)
+        node_name = ''
+        if parent_node_name:
+            node_name += parent_node_name + '_'
+        node_name += str(node_id)
+        dot.node(node_name, '<{}>'.format(table))
+        if parent_node_name:
+            dot.edge(parent_node_name, node_name)
+    child_node_id = 0
+    for child_stack in stack.stacks:
+        add_stack_to_graph(dot, child_stack, child_node_id, node_name)
+        child_node_id += 1
+
+
+def get_graph(node):
+    dot = Digraph(node_attr={'shape': 'plaintext'})
+    dot.graph_attr['rankdir'] = 'BT'
+    stack = Stack()
+    fill_stack(node, stack)
+    add_stack_to_graph(dot, stack)
+    return dot
+
+
 def main():
     arg_parser = argparse.ArgumentParser(description='Parallel stacks')
     arg_parser.add_argument('-p', '--pid', type=int, required=True, help='a process ID')
@@ -136,6 +190,8 @@ def main():
 
     tree = get_parallel_stacks(threads)
     print_parallel_stack(tree)
+    get_graph(tree).render(view=True)
+    #print(get_graph(tree).source)
 
 
 if __name__ == "__main__":
