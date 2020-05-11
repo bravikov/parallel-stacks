@@ -42,13 +42,7 @@ Get parallel stacks from a running process
     (gdb) thread apply all bt
 
     # Run the script and pass a gdb.txt file.
-    (gdb) shell python3 parallel-stacks.py -f gdb.txt
+    (gdb) shell python3 parallel-stacks.py -l gdb.txt
 
     # Disable logging
-    (gdb) set logging off
-
-    # Repeat if you want
-    (gdb) set logging on
-    (gdb) thread apply all bt
-    (gdb) shell python3 parallel-stacks.py -f gdb.txt
     (gdb) set logging off
