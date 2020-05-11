@@ -1,3 +1,4 @@
+import sys
 import subprocess
 import re
 import argparse
@@ -39,7 +40,7 @@ def parse_gdb_output(gdb_output):
     threads = []
     current_thread = None
 
-    for gdb_output_line in gdb_output.splitlines():
+    for gdb_output_line in gdb_output:
         if gdb_output_line.startswith('Thread '):
             thread_info = gdb_output_line.split()
             thread_id = thread_info[1]
@@ -61,7 +62,8 @@ def parse_gdb_output(gdb_output):
                 )
                 current_thread.frames.append(frame)
             else:
-                raise SyntaxError("gdb output: '{}'".format(gdb_output_line))
+                break
+                #raise SyntaxError("gdb output: '{}'".format(gdb_output_line))
 
     return threads
 
@@ -176,14 +178,23 @@ def get_graph(node):
 
 
 def main():
-    arg_parser = argparse.ArgumentParser(description='Parallel stacks')
-    arg_parser.add_argument('-p', '--pid', type=int, required=True, help='a process ID')
+    arg_parser = argparse.ArgumentParser(description='Shows Parallel Stacks of a Process',
+                                         epilog='Data sources are a process, a log file or standard input.')
+    data_source_group = arg_parser.add_mutually_exclusive_group()
+    data_source_group.add_argument('-l', '--log_file', metavar='filename', help='a GDB log file with backtraces',
+                                   type=argparse.FileType('r'), default=sys.stdin)
+    data_source_group.add_argument('-p', '--pid', type=int, required=False, help='a process ID')
     args = arg_parser.parse_args()
 
+    gdb_output = []
     process_id = args.pid
-    gdb_command = ['gdb', '--batch', '-ex', 'thread apply all bt', '-pid', str(process_id)]
-    gdb_result = subprocess.run(gdb_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    gdb_output = gdb_result.stdout.decode('utf-8')
+    input_file = args.log_file
+    if process_id:
+        gdb_command = ['gdb', '--batch', '-ex', 'thread apply all bt', '-pid', str(process_id)]
+        gdb_result = subprocess.run(gdb_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        gdb_output = gdb_result.stdout.decode('utf-8').splitlines()
+    elif input_file:
+        gdb_output = input_file.read().splitlines()
     threads = parse_gdb_output(gdb_output)
     for thread in threads:
         print(thread)
