@@ -1,4 +1,8 @@
-# Quick Start
+# Parallel stacks
+
+![Tray Menu](graph_example.png)
+
+## Quick Start
 
 Get
 
@@ -13,11 +17,11 @@ Get parallel stacks from a running process
 
     python3 parallel-stacks.py --pid 12345
 
-# Help
+## Help
 
     python3 parallel-stacks.py -h
 
-# Example 1 (for GDB 9.1 or above)
+## Example 1 (for GDB 9.1 or above)
 
     # Attach to a process. For example, the process have a PID 12345.
     $ gdb -p 12345
@@ -25,7 +29,7 @@ Get parallel stacks from a running process
     # Run the script and pass backtraces for all threads.
     (gdb) pipe thread apply all bt | python3 parallel-stacks.py
 
-# Example 2 (for GDB below 9.1)
+## Example 2 (for GDB below 9.1)
 
     # Attach to a process. For example, the process have a PID 12345.
     $ gdb -p 12345
