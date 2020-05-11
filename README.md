@@ -6,7 +6,7 @@
 
 Get
 
-    git clone
+    git clone https://github.com/bravikov/parallel-stacks.git
     cd parallel-stacks
 
 Install dependencies
