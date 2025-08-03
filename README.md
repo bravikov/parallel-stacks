@@ -11,7 +11,7 @@ Get
 
 Install dependencies
 
-    pip3 install -r requirements
+    pip3 install -r requirements.txt
 
 Get parallel stacks from a running process
 
