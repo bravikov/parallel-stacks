@@ -22,18 +22,11 @@ add_compile_options(--sysroot=${SDK_PATH})
 
 add_executable(threads-merger
     main.cpp
+    merger.hpp
+
     conanfile.txt
-
-)
-
-add_library(mods)
-target_sources(mods
-  PUBLIC
-    FILE_SET CXX_MODULES FILES
-    merger.cppm
 )
 
 target_link_libraries(threads-merger PRIVATE
   gtest::gtest
-  mods
 )

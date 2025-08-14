@@ -1,26 +1,21 @@
-module;
+#ifndef MERGER_HPP
+#define MERGER_HPP
 
 #include <string>
 #include <functional>
 #include <unordered_map>
-#include <unordered_set>
+#include <map>
 #include <iostream>
 
-export module merger;
 
-export int foo()
-{
-    return 1;
-}
-
-export struct Frame
+struct Frame
 {
     std::string function;
     std::string filename;
     int row = 0;
     int column = 0;
 
-    bool operator==(const Frame&) const = default;
+    auto operator<=>(const Frame&) const = default;
 
     // Оператор вывода для Frame
     friend std::ostream& operator<<(std::ostream& os, const Frame& frame) {
@@ -30,10 +25,11 @@ export struct Frame
     }
 };
 
+
 namespace std
 {
 
-export inline void hash_combine(std::size_t& seed, std::size_t hash) {
+inline void hash_combine(std::size_t& seed, std::size_t hash) {
     seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
@@ -51,18 +47,15 @@ struct hash<Frame> {
 
 } // namespace std
 
-export template<typename T>
-using Tree = std::unordered_map<T, std::unordered_set<T>>;
 
-export
 template<typename T>
 struct Node
 {
     std::size_t count = 0;
     std::size_t level = 0;
-    std::unordered_map<T, Node> next_nodes;
+    std::map<T, Node> next_nodes;
 
-    bool operator==(const Node&) const = default;
+    auto operator<=>(const Node&) const = default;
 
     // Оператор вывода для Node
     friend std::ostream& operator<<(std::ostream& os, const Node& node) {
@@ -73,6 +66,7 @@ private:
     // Вспомогательная функция для рекурсивного вывода с отступами
     std::ostream& print_node(std::ostream& os, int indent) const;
 };
+
 
 // Реализация функции print_node
 template<typename T>
@@ -100,7 +94,7 @@ std::ostream& Node<T>::print_node(std::ostream& os, int indent) const {
     return os;
 }
 
-export
+
 template<typename T>
 Node<T> merge(const std::vector<std::vector<T>>& lists)
 {
@@ -133,3 +127,6 @@ Node<T> merge(const std::vector<std::vector<T>>& lists)
 
     return root;
 }
+
+
+#endif // MERGER_HPP

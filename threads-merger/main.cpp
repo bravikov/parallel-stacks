@@ -1,9 +1,7 @@
 #include <time.h>
 #include <gtest/gtest.h>
-#include <unordered_map>
-#include <unordered_set>
 
-import merger;
+#include "merger.hpp"
 
 using namespace std;
 
@@ -76,7 +74,7 @@ TEST(merge, stack_with_recursion) {
 
     // Ожидаемый результат: стек с рекурсией
     // Одинаковые элементы на одном уровне должны объединяться
-    Node<int> nodeB  {.count=1, .level=4, .next_nodes={} };
+    Node<int> nodeB {.count=1, .level=4, .next_nodes={} };
     Node<int> nodeA3{.count=1, .level=3, .next_nodes={{B, nodeB}} };
     Node<int> nodeA2{.count=1, .level=2, .next_nodes={{A, nodeA3}} };
     Node<int> nodeA1{.count=1, .level=1, .next_nodes={{A, nodeA2}} };
