@@ -1,11 +1,18 @@
 #ifndef MERGER_HPP
 #define MERGER_HPP
 
+#include "html/html_table.hpp"
+
 #include <string>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
+#include <stack>
 #include <map>
 #include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <vector>
 
 
 struct Frame
@@ -128,5 +135,108 @@ Node<T> merge(const std::vector<std::vector<T>>& lists)
     return root;
 }
 
+
+template<typename T>
+Html::TableRow to_row(const T& item, size_t level = 0);
+
+
+template<typename T>
+std::string get_dot_graph(const Node<T>& root) {
+    std::ostringstream dot;
+    dot << "digraph G {\n";
+    dot << "  rankdir=BT;\n";
+    dot << "  node [shape=plaintext];\n";
+
+    int table_id_count = 0;
+
+    using Pair = decltype(root.next_nodes)::value_type;
+
+    std::stack<std::reference_wrapper<const Pair>> nodes_stack;
+    std::stack<int> table_id_stack;
+
+    for (const auto& next_node: root.next_nodes) {
+        nodes_stack.push(next_node);
+        table_id_stack.push(table_id_count++);
+    }
+
+    const Pair * next_node_ptr = nullptr;
+    int current_table_id = 0;
+    std::vector<std::reference_wrapper<const Pair>> current_table;
+
+    std::unordered_multimap<int, int> table_links;
+
+    auto save_table = [&]() {
+        Html::Table table;
+
+        if (!current_table.empty()) {
+            Html::TableRow row;
+            const auto thread_count = current_table[0].get().second.count;
+            auto threads_str = std::to_string(thread_count) + " Thread";
+            if (thread_count > 1) {
+                threads_str += "s";
+            }
+            const int colspan = 100;
+            Html::TableCell cell{threads_str, colspan};
+            row.add_cell(cell);
+            table.add_row(row);
+        }
+        for (auto it = current_table.rbegin(); it != current_table.rend(); ++it) {
+            const size_t level = it->get().second.level - 1;
+            table.add_row(to_row(it->get().first, level));
+        }
+
+        current_table.clear();
+
+        dot << "  table_" << current_table_id << " [label=<" << std::endl;
+        table.render(dot);
+        dot << "  >]" << std::endl << std::endl;
+    };
+
+    while (next_node_ptr != nullptr || !nodes_stack.empty()) {
+        const Pair * current_node_ptr = nullptr;
+
+        if (next_node_ptr) {
+            current_node_ptr = next_node_ptr;
+            next_node_ptr = nullptr;
+        } else {
+            current_node_ptr = &nodes_stack.top().get();
+            nodes_stack.pop();
+
+            current_table_id = table_id_stack.top();
+            table_id_stack.pop();
+        }
+
+        current_table.push_back(*current_node_ptr);
+
+        if (current_node_ptr->second.next_nodes.size() == 1) {
+            next_node_ptr = &(*current_node_ptr->second.next_nodes.begin());
+        }
+        else if (current_node_ptr->second.next_nodes.size() > 1) {
+            for (const auto& next_node: current_node_ptr->second.next_nodes) {
+                nodes_stack.push(next_node);
+                table_id_stack.push(table_id_count++);
+
+                // Link the current table to a next table.
+                table_links.emplace(current_table_id, table_id_stack.top());
+
+            }
+
+            save_table();
+        }
+        else {
+            save_table();
+        }
+    }
+
+    for (const auto& link : table_links) {
+        dot << "  table_" << link.first << " -> table_" << link.second << std::endl;
+    }
+
+    dot << "}\n";
+    return dot.str();
+}
+
+
+std::string dot_to_svg(const std::string& dot_content);
 
 #endif // MERGER_HPP

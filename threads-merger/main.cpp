@@ -1,9 +1,8 @@
 #include <time.h>
+#include <fstream>
 #include <gtest/gtest.h>
 
 #include "merger.hpp"
-
-using namespace std;
 
 enum {
     A=0,
@@ -153,6 +152,35 @@ TEST(merge, frame_stacks) {
     EXPECT_EQ(actual, expected);
 }
 
+TEST(SVG, Basic) {
+    auto input = std::vector<std::vector<int>>{
+       {7, 6, 5, 4, 3, 2, 1},
+       {7, 6, 5, 3, 2, 1},
+    };
+
+    const auto tree = merge<int>(input);
+    const auto dot = get_dot_graph(tree);
+    const auto svg = dot_to_svg(dot);
+
+    std::fstream svg_file{"test-int.svg", svg_file.out};
+    svg_file << svg;
+
+}
+
+TEST(SVG, frame_stacks) {
+    // Тест на использование структуры Frame вместо int
+    auto input = std::vector<std::vector<Frame>>{
+        {Frame{"func2", "file2.cpp", 20, 10}, Frame{"func1", "file1.cpp", 10, 5}},
+        {Frame{"func3", "file3.cpp", 30, 15}, Frame{"func1", "file1.cpp", 10, 5}}
+    };
+
+    const auto tree = merge<Frame>(input);
+    const auto dot = get_dot_graph(tree);
+    const auto svg = dot_to_svg(dot);
+
+    std::fstream svg_file{"test-frame.svg", svg_file.out};
+    svg_file << svg;
+}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

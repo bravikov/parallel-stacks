@@ -9,6 +9,28 @@ set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
 find_package(GTest REQUIRED)
 
+# Поиск системной библиотеки Graphviz
+find_package(PkgConfig REQUIRED)
+
+# Попробуем найти через pkg-config
+pkg_check_modules(GRAPHVIZ libgvc)
+
+# Если pkg-config не сработал, попробуем найти вручную
+if(NOT GRAPHVIZ_FOUND)
+    # На macOS с Homebrew
+    if(APPLE)
+        set(GRAPHVIZ_INCLUDE_DIRS "/opt/homebrew/include/graphviz")
+        set(GRAPHVIZ_LIBRARY_DIRS "/opt/homebrew/lib")
+        set(GRAPHVIZ_LIBRARIES "gvc" "cgraph" "cdt")
+        set(GRAPHVIZ_FOUND TRUE)
+    endif()
+endif()
+
+# Проверяем, что Graphviz найден
+if(NOT GRAPHVIZ_FOUND)
+    message(FATAL_ERROR "Graphviz не найден. Установите его через: brew install graphviz")
+endif()
+
 set(SDK_PATH $ENV{SDKROOT})
 if (NOT SDK_PATH)
     execute_process(
@@ -22,11 +44,40 @@ add_compile_options(--sysroot=${SDK_PATH})
 
 add_executable(threads-merger
     main.cpp
+
     merger.hpp
+    merger.cpp
+
+    html/html_table.hpp
+    html/html_table.cpp
 
     conanfile.txt
 )
 
 target_link_libraries(threads-merger PRIVATE
   gtest::gtest
+  ${GRAPHVIZ_LIBRARIES}
 )
+
+target_include_directories(threads-merger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${GRAPHVIZ_INCLUDE_DIRS})
+target_link_directories(threads-merger PRIVATE ${GRAPHVIZ_LIBRARY_DIRS})
+target_compile_options(threads-merger PRIVATE ${GRAPHVIZ_CFLAGS_OTHER})
+
+# CLI utility target (no GTest). Builds a console app that reads input and prints SVG to stdout.
+add_executable(threads-merger-cli
+    cli.cpp
+
+    merger.hpp
+    merger.cpp
+
+    html/html_table.hpp
+    html/html_table.cpp
+)
+
+target_link_libraries(threads-merger-cli PRIVATE
+  ${GRAPHVIZ_LIBRARIES}
+)
+
+target_include_directories(threads-merger-cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${GRAPHVIZ_INCLUDE_DIRS})
+target_link_directories(threads-merger-cli PRIVATE ${GRAPHVIZ_LIBRARY_DIRS})
+target_compile_options(threads-merger-cli PRIVATE ${GRAPHVIZ_CFLAGS_OTHER})
