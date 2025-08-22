@@ -1,8 +1,8 @@
 #include "merger.hpp"
 
-#include <charconv>
 #include <cctype>
 #include <iostream>
+#include <print>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -31,13 +31,13 @@ std::vector<std::vector<std::string>> parse_input(std::string_view input) {
 
     for (auto stack_range : input | std::views::split(';')) {
         // Build string_view over the subrange
-        std::string_view stack_sv(&*stack_range.begin(), static_cast<size_t>(std::ranges::distance(stack_range)));
+        std::string_view stack_sv(stack_range.begin(), stack_range.end());
         stack_sv = trim(stack_sv);
         if (stack_sv.empty()) continue;
 
         std::vector<std::string> stack_vec;
         for (auto token_range : stack_sv | std::views::split(',')) {
-            std::string_view token_sv(&*token_range.begin(), static_cast<size_t>(std::ranges::distance(token_range)));
+            std::string_view token_sv(token_range.begin(), token_range.end());
             token_sv = trim(token_sv);
             if (token_sv.empty()) continue;
             stack_vec.emplace_back(token_sv);
@@ -54,8 +54,8 @@ std::vector<std::vector<std::string>> parse_input(std::string_view input) {
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " [-d] \"6,5,4,3,2,1; 6,5,7,3,2,1\"\n"
-                  << "  -d   output DOT instead of SVG\n";
+        std::println(std::cerr, "Usage: {} [-d] \"f,e,d,c,b,a; f,e,g,c,b,a\" > example.svg", argv[0]);
+        std::println(std::cerr, "  -d   output DOT instead of SVG");
         return 1;
     }
 
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         }
 
         if (argi >= argc) {
-            std::cerr << "Error: missing input string. See --help.\n";
+            std::println(std::cerr, "Error: missing input string. See --help.");
             return 1;
         }
 
@@ -78,14 +78,14 @@ int main(int argc, char** argv) {
         const auto tree = merge<std::string>(lists);
         const auto dot = get_dot_graph(tree);
         if (output_dot) {
-            std::cout << dot;
+            std::println("{}", dot);
         } else {
             const auto svg = dot_to_svg(dot);
-            std::cout << svg;
+            std::println("{}", svg);
         }
         return 0;
     } catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << "\n";
+        std::println(std::cerr, "Error: {}", ex.what());
         return 2;
     }
 }
