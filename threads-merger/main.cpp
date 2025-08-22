@@ -160,10 +160,8 @@ TEST(SVG, Basic) {
 
     const auto tree = merge<int>(input);
     const auto dot = get_dot_graph(tree);
-    const auto svg = dot_to_svg(dot);
-
-    std::fstream svg_file{"test-int.svg", svg_file.out};
-    svg_file << svg;
+    std::fstream dot_file{"test-int.dot", dot_file.out};
+    dot_file << dot;
 
 }
 
@@ -176,10 +174,8 @@ TEST(SVG, frame_stacks) {
 
     const auto tree = merge<Frame>(input);
     const auto dot = get_dot_graph(tree);
-    const auto svg = dot_to_svg(dot);
-
-    std::fstream svg_file{"test-frame.svg", svg_file.out};
-    svg_file << svg;
+    std::fstream dot_file{"test-frame.dot", dot_file.out};
+    dot_file << dot;
 }
 
 int main(int argc, char **argv) {

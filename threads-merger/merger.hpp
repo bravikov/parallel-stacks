@@ -6,12 +6,9 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
-#include <unordered_set>
 #include <stack>
-#include <map>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
 #include <vector>
 
 
@@ -60,7 +57,7 @@ struct Node
 {
     std::size_t count = 0;
     std::size_t level = 0;
-    std::map<T, Node> next_nodes;
+    std::unordered_map<T, Node> next_nodes;
 
     auto operator<=>(const Node&) const = default;
 
@@ -137,8 +134,10 @@ Node<T> merge(const std::vector<std::vector<T>>& lists)
 
 
 template<typename T>
-Html::TableRow to_row(const T& item, size_t level = 0);
-
+struct HtmlTableRow {
+    static Html::TableRow to_row(const T& item, size_t level = 0);
+    static std::size_t column_count();
+};
 
 template<typename T>
 std::string get_dot_graph(const Node<T>& root) {
@@ -175,14 +174,14 @@ std::string get_dot_graph(const Node<T>& root) {
             if (thread_count > 1) {
                 threads_str += "s";
             }
-            const int colspan = 100;
+            const size_t colspan = HtmlTableRow<T>::column_count();
             Html::TableCell cell{threads_str, colspan};
             row.add_cell(cell);
             table.add_row(row);
         }
         for (auto it = current_table.rbegin(); it != current_table.rend(); ++it) {
             const size_t level = it->get().second.level - 1;
-            table.add_row(to_row(it->get().first, level));
+            table.add_row(HtmlTableRow<T>::to_row(it->get().first, level));
         }
 
         current_table.clear();
@@ -236,7 +235,11 @@ std::string get_dot_graph(const Node<T>& root) {
     return dot.str();
 }
 
-
-std::string dot_to_svg(const std::string& dot_content);
+template<typename T>
+std::string merge_to_graphviz_dot(const std::vector<std::vector<T>>& lists)
+{
+    const auto root = merge(lists);
+    return get_dot_graph(root);
+}
 
 #endif // MERGER_HPP

@@ -8,12 +8,12 @@ namespace Html {
 
 class TableCell {
 public:
-    explicit TableCell(std::string content, int colspan = 1);
+    explicit TableCell(std::string content, std::size_t colspan = 1);
     void render(std::ostringstream& ss) const;
 
 private:
     std::string content_;
-    int colspan_;
+    std::size_t colspan_;
 };
 
 class TableRow {

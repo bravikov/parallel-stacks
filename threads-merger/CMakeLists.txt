@@ -21,14 +21,14 @@ if(NOT GRAPHVIZ_FOUND)
     if(APPLE)
         set(GRAPHVIZ_INCLUDE_DIRS "/opt/homebrew/include/graphviz")
         set(GRAPHVIZ_LIBRARY_DIRS "/opt/homebrew/lib")
-        set(GRAPHVIZ_LIBRARIES "gvc" "cgraph" "cdt")
+        set(GRAPHVIZ_LIBRARIES "gvc")
         set(GRAPHVIZ_FOUND TRUE)
     endif()
 endif()
 
-# Проверяем, что Graphviz найден
+# Graphviz is mandatory for CLI build
 if(NOT GRAPHVIZ_FOUND)
-    message(FATAL_ERROR "Graphviz не найден. Установите его через: brew install graphviz")
+    message(FATAL_ERROR "Graphviz not found. Install with 'brew install graphviz' or provide GRAPHVIZ_* variables.")
 endif()
 
 set(SDK_PATH $ENV{SDKROOT})
@@ -56,14 +56,11 @@ add_executable(threads-merger
 
 target_link_libraries(threads-merger PRIVATE
   gtest::gtest
-  ${GRAPHVIZ_LIBRARIES}
 )
 
-target_include_directories(threads-merger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${GRAPHVIZ_INCLUDE_DIRS})
-target_link_directories(threads-merger PRIVATE ${GRAPHVIZ_LIBRARY_DIRS})
-target_compile_options(threads-merger PRIVATE ${GRAPHVIZ_CFLAGS_OTHER})
+target_include_directories(threads-merger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# CLI utility target (no GTest). Builds a console app that reads input and prints SVG to stdout.
+# CLI utility target (no GTest). Reads input and prints SVG to stdout.
 add_executable(threads-merger-cli
     cli.cpp
 

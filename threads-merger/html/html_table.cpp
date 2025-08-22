@@ -2,7 +2,7 @@
 
 namespace Html {
 
-TableCell::TableCell(std::string content, int colspan)
+TableCell::TableCell(std::string content, std::size_t colspan)
     : content_(std::move(content)), colspan_(colspan) {}
 
 void TableCell::render(std::ostringstream& ss) const {
