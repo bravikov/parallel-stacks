@@ -1,5 +1,24 @@
 #include "html_table.hpp"
 
+namespace {
+// Simple HTML escaping for text nodes
+std::string escape_html(const std::string& input) {
+    std::string out;
+    out.reserve(input.size());
+    for (char c : input) {
+        switch (c) {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;"; break;
+            case '>': out += "&gt;"; break;
+            case '"': out += "&quot;"; break;
+            case '\'': out += "&#39;"; break;
+            default: out += c; break;
+        }
+    }
+    return out;
+}
+} // namespace
+
 namespace Html {
 
 TableCell::TableCell(std::string content, std::size_t colspan)
@@ -10,7 +29,7 @@ void TableCell::render(std::ostringstream& ss) const {
     if (colspan_ > 1) {
         ss << " colspan=\"" << colspan_ << "\"";
     }
-    ss << ">" << content_ << "</td>\n";
+    ss << ">" << escape_html(content_) << "</td>\n";
 }
 
 void TableRow::add_cell(const TableCell& cell) {
