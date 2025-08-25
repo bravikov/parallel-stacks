@@ -25,7 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
             const threadsResponse = await session.customRequest('threads');
             const threads = threadsResponse.threads || [];
 
-            let stackInfo: string[] = [];
             const paths: Array<Array<{ function: string; filename: string; row: number; column: number }>> = [];
 
             // Для каждого потока запрашиваем стек вызовов
@@ -43,7 +42,6 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 const frames = stackTraceResponse.stackFrames || [];
                 const frameInfo = frames.map((f: any) => `${f.name} (${f.source?.name}:${f.line})`).join('<br>');
-                stackInfo.push(`<b>Поток: ${thread.name}</b><br>${frameInfo}`);
 
                 // Собираем путь для merger (последовательность кадров)
                 const path = frames.map((f: any) => ({
@@ -67,53 +65,58 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
-                    // Разрешаем доступ к локальным ресурсам из папки media
-                    localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
                 }
             );
 
-            const nonce = getNonce();
-            const cspSource: string = (panel.webview as any).cspSource || '';
-            // Встраиваем DOT-граф и подключаем Viz.js для рендера SVG
-            // Примечание: для офлайн-использования лучше положить viz.js и full.render.js в папку `media/`
+            const { instance } = await import("@viz-js/viz");
+            const viz = await instance();
+
+            // рендер в SVG
+            const svg = viz.renderString(dot, { format: "svg" });
+
             panel.webview.html = `
                 <!DOCTYPE html>
-                <html lang="ru">
+                <html lang="ru" style="height: 100%; margin: 0; padding: 0;">
                 <head>
                     <meta charset="UTF-8">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} https: data:; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src ${cspSource} 'unsafe-inline'; font-src ${cspSource}; connect-src https:;">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
-                        body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif; padding: 1em; }
-                        b { color: #007acc; }
-                        .thread { margin-bottom: 1em; }
-                        #graph { margin-top: 1em; }
-                        .error { color: #f00; white-space: pre-wrap; }
+                        html, body {
+                            height: 100%;
+                            margin: 0;
+                            padding: 0;
+                            overflow: hidden;
+                            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
+                        }
+                        #graph {
+                            width: 100%;
+                            height: 100%;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                        }
+                        svg {
+                            flex: 1;
+                            width: 100%;
+                            height: 100%;
+                        }
                     </style>
                 </head>
                 <body>
-                    ${stackInfo.map(s => `<div class="thread">${s}</div>`).join('')}
-                    <div id="graph"></div>
+                    <div id="graph">${svg}</div>
 
-                    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.js"></script>
-                    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/full.render.js"></script>
-                    <script nonce="${nonce}">
-                        (function(){
-                            const dot = ${JSON.stringify(dot)};
-                            const container = document.getElementById('graph');
-                            try {
-                                const viz = new Viz();
-                                viz.renderSVGElement(dot)
-                                    .then(svg => {
-                                        container.innerHTML = '';
-                                        container.appendChild(svg);
-                                    })
-                                    .catch(err => {
-                                        container.innerHTML = '<div class="error">Viz render error: ' + (err && (err.message || String(err))) + '</div>';
-                                    });
-                            } catch (e) {
-                                container.innerHTML = '<div class="error">Viz init error: ' + (e && (e.message || String(e))) + '</div>';
-                            }
-                        })();
+                    <!-- подключение библиотеки -->
+                    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+                    <script>
+                        const svgElement = document.querySelector('svg');
+                        const panZoom = svgPanZoom(svgElement, {
+                            zoomEnabled: true,
+                            controlIconsEnabled: true,
+                            fit: true,
+                            center: true,
+                            minZoom: 0.1,
+                            maxZoom: 10
+                        });
                     </script>
                 </body>
                 </html>
@@ -190,14 +193,4 @@ async function getDotFromMerger(
         console.error('getDotFromMerger failed:', e);
         return 'digraph { label="merge_to_graphviz_dot failed" }';
     }
-}
-
-// ======== Helpers ========
-function getNonce(): string {
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let text = '';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }
