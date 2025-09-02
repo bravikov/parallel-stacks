@@ -25,12 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
             const threadsResponse = await session.customRequest('threads');
             const threads = threadsResponse.threads || [];
 
-            const paths: Array<Array<{ function: string; filename: string; row: number; column: number }>> = [];
+            const stacks: Array<Array<{ function: string; filename: string; row: number; column: number }>> = [];
 
             // Для каждого потока запрашиваем стек вызовов
 
 			// Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
-			// Specification of type StachFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+			// Specification of StachFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
 
             for (const thread of threads) {
 
@@ -40,23 +40,25 @@ export function activate(context: vscode.ExtensionContext) {
                     startFrame: 0,
                     levels: 20 // Можно изменить глубину стека
                 });
+
+                // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+                // Specification of Source type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Source
                 const frames = stackTraceResponse.stackFrames || [];
-                const frameInfo = frames.map((f: any) => `${f.name} (${f.source?.name}:${f.line})`).join('<br>');
 
                 // Собираем путь для merger (последовательность кадров)
-                const path = frames.map((f: any) => ({
-                    function: String(f.name || ''),
-                    filename: String(f.source?.path || f.source?.name || ''),
-                    row: Number(f.line || 0),
-                    column: Number(f.column || 0)
+                const stack = frames.map((frame: any) => ({
+                    function: String(frame.name || ''),
+                    filename: frame.source?.path ? path.basename(frame.source.path) : String(frame.source?.name || ''),
+                    row: Number(frame.line || 0),
+                    column: Number(frame.column || 0)
                 }));
-                if (path.length > 0) {
-                    paths.push(path);
+                if (stack.length > 0) {
+                    stacks.push(stack);
                 }
             }
 
             // Загружаем и используем merger (WASM) на стороне расширения, получаем DOT
-            let dot = await getDotFromMerger(context, paths);
+            let dot = await getDotFromMerger(context, stacks);
 
             // Открываем новую вкладку (Webview) только для рендера SVG из DOT
             const panel = vscode.window.createWebviewPanel(
