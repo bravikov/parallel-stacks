@@ -106,7 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
                     <div id="graph">${svg}</div>
 
                     <!-- подключение библиотеки -->
-                    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+                    <script src="${panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'svg-pan-zoom.min.js'))}"></script>
                     <script>
                         const svgElement = document.querySelector('svg');
                         const panZoom = svgPanZoom(svgElement, {
