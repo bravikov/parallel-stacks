@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as os from 'os';
-import { ThemeColor } from 'vscode';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
