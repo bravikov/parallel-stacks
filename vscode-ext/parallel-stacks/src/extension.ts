@@ -2,6 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { promises as fs } from 'fs';
+import * as os from 'os';
+import { ThemeColor } from 'vscode';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -76,7 +79,11 @@ export function activate(context: vscode.ExtensionContext) {
             // рендер в SVG
             const svg = viz.renderString(dot, { format: "svg" });
 
-            panel.webview.html = `
+            const svgPanZoomUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'svg-pan-zoom.min.js');
+            const svgPanZoomWebviewUri = panel.webview.asWebviewUri(svgPanZoomUri).toString();
+            const svgPanZoomFileUri = vscode.Uri.file(svgPanZoomUri.fsPath).toString();
+
+            const html = `
                 <!DOCTYPE html>
                 <html lang="ru" style="height: 100%; margin: 0; padding: 0;">
                 <head>
@@ -88,27 +95,58 @@ export function activate(context: vscode.ExtensionContext) {
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
-                            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
+                            font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif);
+                            background-color: var(--vscode-editor-background, #1e1e1e);
+                            color: var(--vscode-editor-foreground, #d4d4d4);
                         }
-                        #graph {
+                        #svg-container {
                             width: 100%;
                             height: 100%;
                             margin: 0;
                             padding: 0;
                             display: flex;
+                            background: var(--vscode-editor-background, #1e1e1e);
                         }
-                        svg {
+
+                        #svg-container svg {
                             flex: 1;
                             width: 100%;
                             height: 100%;
+                            background: var(--vscode-editor-background, #1e1e1e);
+                        }
+
+                        #svg-container svg .graph polygon {
+                            fill: var(--vscode-editor-background, #1e1e1e) !important;
+                            stroke: none !important;
+                        }
+
+                        #svg-container svg .node polygon,
+                        #svg-container svg .node path,
+                        #svg-container svg .node polyline,
+                        #svg-container svg .node rect,
+                        #svg-container svg .node ellipse,
+                        #svg-container svg .node line {
+                            stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
+                            fill: none !important;
+                        }
+
+                        #svg-container svg .node text {
+                            stroke: none !important;
+                            fill: var(--vscode-editor-foreground, #d4d4d4) !important;
+                        }
+
+                        #svg-container svg .edge path,
+                        #svg-container svg .edge polygon {
+                            stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
+                            fill: var(--vscode-editor-foreground, #d4d4d4) !important;
                         }
                     </style>
                 </head>
                 <body>
-                    <div id="graph">${svg}</div>
+                    <div id="svg-container">${svg}</div>
 
                     <!-- подключение библиотеки -->
-                    <script src="${panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'svg-pan-zoom.min.js'))}"></script>
+                    <script src="${svgPanZoomWebviewUri}"></script>
                     <script>
                         const svgElement = document.querySelector('svg');
                         const panZoom = svgPanZoom(svgElement, {
@@ -123,6 +161,8 @@ export function activate(context: vscode.ExtensionContext) {
                 </body>
                 </html>
             `;
+            panel.webview.html = html;
+            await persistWebviewHtml(html, [[svgPanZoomWebviewUri, svgPanZoomFileUri]]);
         } catch (err: any) {
             vscode.window.showErrorMessage(`Ошибка получения стеков: ${err.message || err}`);
         }
@@ -133,6 +173,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+async function persistWebviewHtml(html: string, replacements: Array<[string, string]> = []): Promise<void> {
+    const filePath = path.join(os.tmpdir(), `parallel-stacks-webview-${Date.now()}.html`);
+    try {
+        const normalizedHtml = replacements.reduce((acc, [from, to]) => acc.split(from).join(to), html);
+        await fs.writeFile(filePath, normalizedHtml, 'utf8');
+        console.log(`Parallel Stacks webview HTML saved to ${filePath}`);
+    } catch (error) {
+        console.error('Failed to save Parallel Stacks webview HTML:', error);
+    }
+}
 
 // ======== Merger (WASM) загрузка на стороне Node ========
 let cachedMergerModule: any | null = null;
