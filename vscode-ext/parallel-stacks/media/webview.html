@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru" style="height: 100%; margin: 0; padding: 0;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif);
+            background-color: var(--vscode-editor-background, #1e1e1e);
+            color: var(--vscode-editor-foreground, #d4d4d4);
+        }
+        #svg-container {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background: var(--vscode-editor-background, #1e1e1e);
+        }
+
+        #svg-container svg {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: var(--vscode-editor-background, #1e1e1e);
+        }
+
+        #svg-container svg .graph polygon {
+            fill: var(--vscode-editor-background, #1e1e1e) !important;
+            stroke: none !important;
+        }
+
+        #svg-container svg .node polygon,
+        #svg-container svg .node path,
+        #svg-container svg .node polyline,
+        #svg-container svg .node rect,
+        #svg-container svg .node ellipse,
+        #svg-container svg .node line {
+            stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
+            fill: none !important;
+        }
+
+        #svg-container svg .node text {
+            stroke: none !important;
+            fill: var(--vscode-editor-foreground, #d4d4d4) !important;
+        }
+
+        #svg-container svg .edge path,
+        #svg-container svg .edge polygon {
+            stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
+            fill: var(--vscode-editor-foreground, #d4d4d4) !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="svg-container">{{SVG_CONTENT}}</div>
+
+    <!-- подключение библиотеки -->
+    <script src="{{SVG_PAN_ZOOM_URI}}"></script>
+    <script>
+        const svgElement = document.querySelector('svg');
+        if (!svgElement) {
+            console.error('Parallel Stacks: SVG root not found');
+        } else {
+            const selectableTags = new Set(['text', 'tspan', 'textpath']);
+            const shouldBypassPan = (target) => {
+                if (!(target instanceof Element)) {
+                    return false;
+                }
+                let current = target;
+                while (current && current !== svgElement) {
+                    if (selectableTags.has(current.tagName.toLowerCase())) {
+                        return true;
+                    }
+                    current = current.parentElement;
+                }
+                return false;
+            };
+
+            const panZoom = svgPanZoom(svgElement, {
+                zoomEnabled: true,
+                controlIconsEnabled: true,
+                fit: true,
+                center: true,
+                minZoom: 0.1,
+                maxZoom: 10
+            });
+
+            ['mousedown', 'touchstart', 'dblclick'].forEach((eventName) => {
+                svgElement.addEventListener(eventName, (event) => {
+                    if (shouldBypassPan(event.target)) {
+                        event.stopImmediatePropagation();
+                    }
+                }, true);
+            });
+        }
+    </script>
+</body>
+</html>
