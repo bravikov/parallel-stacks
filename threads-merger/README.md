@@ -15,3 +15,7 @@
 Dependency for macOS:
 
     brew install graphviz
+
+## Build WASM module
+
+    emcc --std=c++23 -lembind html/html_table.cpp merger.cpp merger-wasm.cpp -o merger.js
