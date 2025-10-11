@@ -228,7 +228,7 @@ std::string get_dot_graph(const Node<T>& root) {
     }
 
     for (const auto& link : table_links) {
-        dot << "  table_" << link.first << " -> table_" << link.second << std::endl;
+        dot << "  table_" << link.first << " -> table_" << link.second << " [arrowsize=2 minlen=2]" << std::endl;
     }
 
     dot << "}\n";

@@ -40,7 +40,11 @@ void TableCell::render(std::ostringstream& ss, std::string_view sides) const {
         }
         ss << "\"";
     }
-    ss << ">" << escape_html(content_) << "</td>\n";
+    ss << ">";
+    ss << "<FONT POINT-SIZE=\"40\">";
+    ss << escape_html(content_);
+    ss << "</FONT>";
+    ss << "</td>\n";
 }
 
 std::size_t TableCell::colspan() const {
@@ -73,7 +77,7 @@ void Table::add_row(const TableRow& row) {
 }
 
 void Table::render(std::ostringstream& ss) const {
-    ss << "    <table BORDER=\"1\" CELLBORDER=\"1\" CELLPADDING=\"3\" CELLSPACING=\"0\" STYLE=\"ROUNDED\">\n";
+    ss << "    <table BORDER=\"1\" CELLBORDER=\"1\" CELLPADDING=\"10\" CELLSPACING=\"0\" STYLE=\"ROUNDED\">\n";
     for (std::size_t row_index = 0; row_index < rows_.size(); ++row_index) {
         rows_[row_index].render(ss, row_index);
     }
