@@ -13,41 +13,40 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "parallel-stacks" is now active!');
 
-    // Команда для отображения стеков потоков в новой вкладке (Webview)
+    // Command to display thread stacks in a new tab (Webview)
     const disposable = vscode.commands.registerCommand('parallel-stacks.show', async () => {
         const session = vscode.debug.activeDebugSession;
         if (!session) {
-            vscode.window.showWarningMessage('Нет активной сессии отладки.');
+            vscode.window.showWarningMessage('No active debug session.');
             return;
         }
 
         try {
-            // Запрашиваем информацию о потоках
-			// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Threads
+            // Request thread information
+            // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Threads
             const threadsResponse = await session.customRequest('threads');
             const threads = threadsResponse.threads || [];
 
             const stacks: Array<Array<{ function: string; filename: string; row: number; column: number }>> = [];
 
-            // Для каждого потока запрашиваем стек вызовов
-
-			// Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
-			// Specification of StachFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+            // Request the call stack for each thread
+            // Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
+            // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
 
             for (const thread of threads) {
 
-				// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StackTrace
+                // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StackTrace
                 const stackTraceResponse = await session.customRequest('stackTrace', {
                     threadId: thread.id,
                     startFrame: 0,
-                    levels: 20 // Можно изменить глубину стека
+                    levels: 20 // Adjust the stack depth if needed
                 });
 
                 // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
                 // Specification of Source type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Source
                 const frames = stackTraceResponse.stackFrames || [];
 
-                // Собираем путь для merger (последовательность кадров)
+                // Build the path for the merger (sequence of frames)
                 const stack = frames.map((frame: any) => ({
                     function: String(frame.name || ''),
                     filename: frame.source?.path ? path.basename(frame.source.path) : String(frame.source?.name || ''),
@@ -59,10 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             }
 
-            // Загружаем и используем merger (WASM) на стороне расширения, получаем DOT
+            // Load and use the merger (WASM) within the extension to obtain DOT
             let dot = await getDotFromMerger(context, stacks);
 
-            // Открываем новую вкладку (Webview) только для рендера SVG из DOT
+            // Open a new tab (Webview) purely to render the SVG generated from DOT
             const panel = vscode.window.createWebviewPanel(
                 'parallelStacks',
                 'Parallel Stacks',
@@ -75,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
             const { instance } = await import("@viz-js/viz");
             const viz = await instance();
 
-            // рендер в SVG
+            // Render to SVG
             const svg = viz.renderString(dot, { format: "svg" });
 
             const svgPanZoomUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'svg-pan-zoom.min.js');
@@ -86,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
             panel.webview.html = html;
             await persistWebviewHtml(html, [[svgPanZoomWebviewUri, svgPanZoomFileUri]]);
         } catch (err: any) {
-            vscode.window.showErrorMessage(`Ошибка получения стеков: ${err.message || err}`);
+            vscode.window.showErrorMessage(`Failed to fetch stacks: ${err.message || err}`);
         }
     });
 
@@ -119,7 +118,7 @@ async function buildWebviewHtml(
     ]);
 }
 
-// ======== Merger (WASM) загрузка на стороне Node ========
+// ======== Merger (WASM) loading ========
 let cachedMergerModule: any | null = null;
 let cachedWebviewTemplate: string | null = null;
 
