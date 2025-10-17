@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
                 const stackTraceResponse = await session.customRequest('stackTrace', {
                     threadId: thread.id,
                     startFrame: 0,
-                    levels: 20 // Adjust the stack depth if needed
+                    levels: 200 // Adjust the stack depth if needed
                 });
 
                 // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
