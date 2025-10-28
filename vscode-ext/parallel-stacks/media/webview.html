@@ -49,7 +49,11 @@
             fill: var(--vscode-editor-foreground, #d4d4d4) !important;
         }
 
-        #svg-container svg .edge path,
+        #svg-container svg .edge path {
+            stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
+            fill: none !important;
+        }
+
         #svg-container svg .edge polygon {
             stroke: var(--vscode-editor-foreground, #d4d4d4) !important;
             fill: var(--vscode-editor-foreground, #d4d4d4) !important;
