@@ -16,6 +16,8 @@ What the graph looks like for a real Go program:
 
 This is the [Chat Example](https://github.com/gorilla/websocket/tree/main/examples/chat) application from the [Gorilla WebSocket](https://github.com/gorilla/websocket) project.
 
+The extension supports all programming languages supported by Visual Studio Code.
+
 How to use the extension:
 
 1. Install the extension.
