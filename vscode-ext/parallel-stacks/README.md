@@ -2,6 +2,9 @@
 
 The Parallel Stacks extension is useful for debugging multithreaded applications.
 
+If you like this extension, consider supporting development:
+[![Buy Me a Coffee](https://img.shields.io/badge/☕️-Buy%20Me%20a%20Coffee-yellow)](https://buymeacoffee.com/bravikov1)
+
 The extension renders thread stack traces as a graph.
 
 The principle of converting stacks into a graph is illustrated here:
