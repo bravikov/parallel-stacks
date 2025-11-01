@@ -3,19 +3,20 @@
 The Parallel Stacks extension is useful for debugging multithreaded applications.
 
 If you like this extension, consider supporting development:
+
 [![Buy Me a Coffee](https://img.shields.io/badge/☕️-Buy%20Me%20a%20Coffee-yellow)](https://buymeacoffee.com/bravikov1)
 
 The extension renders thread stack traces as a graph.
 
 The principle of converting stacks into a graph is illustrated here:
 
-![Stacks collapsing into a parallel stacks graph](images/stacks-to-parallel-stacks.png)
+![Stacks collapsing into a parallel stacks graph](https://raw.githubusercontent.com/bravikov/parallel-stacks/master/vscode-ext/parallel-stacks/images/stacks-to-parallel-stacks.png)
 
 What the graph looks like for a real Go program:
 
-![Debugging of Go App](images/example-gorilla-websocket-chat-1.png)
-![Debugging of Go App](images/example-gorilla-websocket-chat-2.png)
-![Debugging of Go App](images/example-gorilla-websocket-chat-3.png)
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-1.png)
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-2.png)
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-3.png)
 
 This is the [Chat Example](https://github.com/gorilla/websocket/tree/main/examples/chat) application from the [Gorilla WebSocket](https://github.com/gorilla/websocket) project.
 
