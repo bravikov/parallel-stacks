@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Parallel Stacks - Merger Test</title>
+  </head>
+  <body>
+    <h1>Parallel Stacks Merger Test</h1>
+    <div id="output"></div>
+
+    <script>
+      var Module = {
+        onRuntimeInitialized: function() {
+          console.log('WebAssembly module initialized');
+
+          // Create sample data to demonstrate merge
+          const testStacks = [
+            // Stack 1: bar -> foo -> main (reversed)
+            [
+              { function: 'bar', filename: 'utils.cpp', row: 15, column: 12 },
+              { function: 'foo', filename: 'main.cpp', row: 25, column: 8 },
+              { function: 'main', filename: 'main.cpp', row: 10, column: 5 }
+            ],
+            // Stack 2: baz -> foo -> main (reversed, partially overlaps)
+            [
+              { function: 'baz', filename: 'utils.cpp', row: 30, column: 3 },
+              { function: 'foo', filename: 'main.cpp', row: 25, column: 8 },
+              { function: 'main', filename: 'main.cpp', row: 10, column: 5 }
+            ],
+            // Stack 3: qux -> main (reversed, different path)
+            [
+              { function: 'qux', filename: 'other.cpp', row: 42, column: 7 },
+              { function: 'main', filename: 'main.cpp', row: 10, column: 5 }
+            ]
+          ];
+          try {
+              // Convert JavaScript objects to C++ Frame instances
+              const cppStacks = new Module.VectorVectorFrame();
+
+              testStacks.forEach(stack => {
+                const cppStack = new Module.VectorFrame();
+                stack.forEach(frameData => {
+                  const frame = new Module.Frame();
+                  frame.function = frameData.function;
+                  frame.filename = frameData.filename;
+                  frame.row = frameData.row;
+                  frame.column = frameData.column;
+                  cppStack.push_back(frame);
+                });
+                cppStacks.push_back(cppStack);
+              });
+
+              // Invoke merge function
+              console.log('Calling merge function...');
+              const result = Module.merge_to_graphviz_dot(cppStacks);
+              console.log('Merge result:', result);
+
+              const outputElement = document.getElementById('output');
+              outputElement.innerHTML = '<h2>Merge result</h2>';
+              const resultBlock = document.createElement('pre');
+              resultBlock.textContent = result;
+              outputElement.appendChild(resultBlock);
+
+          } catch (error) {
+            console.error('Error during merge:', error);
+            document.getElementById('output').innerHTML = `
+              <h2>Error:</h2>
+              <p style="color: red;">${error.message}</p>
+            `;
+          }
+        }
+      };
+    </script>
+    <script src="build/merger.js"></script>
+  </body>
+</html>
