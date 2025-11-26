@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2025-11-26
+
+- Compatibility with VC Code 1.99 and higher.
+- Compatibility with Cursor IDE.
+
+
 ## [0.0.1] - 2025-10-28
 
 - The Parallel Stacks tool from Visual Studio IDE, implemented for Visual Studio Code.

@@ -3,3 +3,7 @@
 Build vsix:
 
     vsce package
+
+Publish:
+
+    vsce publish
