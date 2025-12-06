@@ -9,6 +9,8 @@ import * as os from 'os';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
+    let webviewCounter = 0;
+
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "parallel-stacks" is now active!');
@@ -61,10 +63,11 @@ export function activate(context: vscode.ExtensionContext) {
             // Load and use the merger (WASM) within the extension to obtain DOT
             let dot = await getDotFromMerger(context, stacks);
 
+            const panelTitle = `Parallel Stacks ${++webviewCounter}`;
             // Open a new tab (Webview) purely to render the SVG generated from DOT
             const panel = vscode.window.createWebviewPanel(
                 'parallelStacks',
-                'Parallel Stacks',
+                panelTitle,
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
