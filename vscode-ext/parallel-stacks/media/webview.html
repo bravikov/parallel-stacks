@@ -12,6 +12,7 @@
             font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif);
             background-color: var(--vscode-editor-background, #1e1e1e);
             color: var(--vscode-editor-foreground, #d4d4d4);
+            position: relative;
         }
         #svg-container {
             width: 100%;
@@ -20,6 +21,33 @@
             padding: 0;
             display: flex;
             background: var(--vscode-editor-background, #1e1e1e);
+        }
+
+        #controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        #save-svg {
+            background: var(--vscode-button-background, #0e639c);
+            color: var(--vscode-button-foreground, #ffffff);
+            border: 1px solid var(--vscode-button-border, transparent);
+            border-radius: 4px;
+            padding: 6px 10px;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        #save-svg:hover {
+            filter: brightness(1.05);
+        }
+
+        #save-svg:active {
+            filter: brightness(0.95);
         }
 
         #svg-container svg {
@@ -61,11 +89,15 @@
     </style>
 </head>
 <body>
+    <div id="controls">
+        <button id="save-svg" type="button" title="Save SVG">Save SVG</button>
+    </div>
     <div id="svg-container">{{SVG_CONTENT}}</div>
 
     <!-- подключение библиотеки -->
     <script src="{{SVG_PAN_ZOOM_URI}}"></script>
     <script>
+        const vscodeApi = acquireVsCodeApi();
         const svgElement = document.querySelector('svg');
         if (!svgElement) {
             console.error('Parallel Stacks: SVG root not found');
@@ -100,6 +132,72 @@
                         event.stopImmediatePropagation();
                     }
                 }, true);
+            });
+        }
+
+        const resolveThemeCss = () => {
+            const styles = getComputedStyle(document.documentElement);
+            const bg = styles.getPropertyValue('--vscode-editor-background').trim() || '#1e1e1e';
+            const fg = styles.getPropertyValue('--vscode-editor-foreground').trim() || '#d4d4d4';
+
+            return `
+            .graph polygon {
+                fill: ${bg} !important;
+                stroke: none !important;
+            }
+
+            .node polygon,
+            .node path,
+            .node polyline,
+            .node rect,
+            .node ellipse,
+            .node line {
+                stroke: ${fg} !important;
+                fill: none !important;
+            }
+
+            .node text {
+                stroke: none !important;
+                fill: ${fg} !important;
+            }
+
+            .edge path {
+                stroke: ${fg} !important;
+                fill: none !important;
+            }
+
+            .edge polygon {
+                stroke: ${fg} !important;
+                fill: ${fg} !important;
+            }
+            `;
+        };
+
+        const saveButton = document.getElementById('save-svg');
+        if (saveButton && svgElement) {
+            saveButton.addEventListener('click', () => {
+                const clone = svgElement.cloneNode(true);
+                const styleNode = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                styleNode.setAttribute('type', 'text/css');
+                styleNode.textContent = resolveThemeCss();
+                clone.insertBefore(styleNode, clone.firstChild);
+
+                const removePanZoomControls = () => {
+                    const controlClasses = [
+                        'svg-pan-zoom-control',
+                        'svg-pan-zoom-control-background',
+                        'svg-pan-zoom-zoom-in',
+                        'svg-pan-zoom-zoom-out',
+                        'svg-pan-zoom-reset'
+                    ];
+                    controlClasses.forEach((cls) => {
+                        clone.querySelectorAll(`.${cls}`).forEach((node) => node.remove());
+                    });
+                };
+                removePanZoomControls();
+
+                const serializedSvg = new XMLSerializer().serializeToString(clone);
+                vscodeApi.postMessage({ type: 'saveSvg', content: serializedSvg });
             });
         }
     </script>

@@ -5,11 +5,14 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as os from 'os';
 
+const LAST_SAVE_DIR_KEY = 'parallelStacks.lastSaveDir';
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
     let webviewCounter = 0;
+    let lastSaveDir: string | null = context.globalState.get<string>(LAST_SAVE_DIR_KEY) ?? null;
 
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
@@ -63,7 +66,8 @@ export function activate(context: vscode.ExtensionContext) {
             // Load and use the merger (WASM) within the extension to obtain DOT
             let dot = await getDotFromMerger(context, stacks);
 
-            const panelTitle = `Parallel Stacks ${++webviewCounter}`;
+            const tabIndex = ++webviewCounter;
+            const panelTitle = `Parallel Stacks ${tabIndex}`;
             // Open a new tab (Webview) purely to render the SVG generated from DOT
             const panel = vscode.window.createWebviewPanel(
                 'parallelStacks',
@@ -89,6 +93,15 @@ export function activate(context: vscode.ExtensionContext) {
             const html = await buildWebviewHtml(context, svg, svgPanZoomWebviewUri);
             panel.webview.html = html;
             await persistWebviewHtml(html, [[svgPanZoomWebviewUri, svgPanZoomFileUri]]);
+
+            panel.webview.onDidReceiveMessage(async (message) => {
+                if (message?.type === 'saveSvg' && typeof message.content === 'string') {
+                    const updatedDir = await handleSaveSvg(context, message.content, lastSaveDir, tabIndex);
+                    if (updatedDir) {
+                        lastSaveDir = updatedDir;
+                    }
+                }
+            });
         } catch (err: any) {
             vscode.window.showErrorMessage(`Failed to fetch stacks: ${err.message || err}`);
         }
@@ -199,4 +212,43 @@ async function getDotFromMerger(
 
 function applyReplacements(value: string, replacements: Array<[string, string]>): string {
     return replacements.reduce((acc, [from, to]) => acc.split(from).join(to), value);
+}
+
+async function handleSaveSvg(
+    context: vscode.ExtensionContext,
+    svgContent: string,
+    previousDir: string | null,
+    tabIndex: number
+): Promise<string | null> {
+    const defaultDir = previousDir || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || os.homedir();
+    const defaultFileName = `parallel-stacks-${tabIndex}.svg`;
+    const defaultUri = vscode.Uri.file(path.join(defaultDir, defaultFileName));
+
+    const targetUri = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: { 'SVG': ['svg'] },
+        saveLabel: 'Save SVG'
+    });
+
+    if (!targetUri) {
+        return previousDir;
+    }
+
+    try {
+        const normalizedSvg = ensureXmlDeclaration(svgContent);
+        await fs.writeFile(targetUri.fsPath, normalizedSvg, 'utf8');
+        const targetDir = path.dirname(targetUri.fsPath);
+        await context.globalState.update(LAST_SAVE_DIR_KEY, targetDir);
+        vscode.window.showInformationMessage(`Parallel Stacks SVG saved to ${targetUri.fsPath}`);
+        return targetDir;
+    } catch (error: any) {
+        vscode.window.showErrorMessage(`Failed to save SVG: ${error?.message || error}`);
+        return null;
+    }
+}
+
+function ensureXmlDeclaration(svgContent: string): string {
+    const trimmed = svgContent.trimStart();
+    const hasXmlDeclaration = trimmed.startsWith('<?xml');
+    return hasXmlDeclaration ? svgContent : `<?xml version="1.0" encoding="UTF-8"?>\n${svgContent}`;
 }
