@@ -70,6 +70,8 @@ export function activate(context: vscode.ExtensionContext) {
                     enableScripts: true,
                 }
             );
+            const panelIcon = vscode.Uri.joinPath(context.extensionUri, 'images', 'icon.png');
+            panel.iconPath = { light: panelIcon, dark: panelIcon };
 
             const { instance } = await import("@viz-js/viz");
             const viz = await instance();
