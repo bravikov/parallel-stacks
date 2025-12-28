@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-12-28
+
+- Fixed saving graph to SVG file.
+- Ready for stable release.
+
 ## [0.0.3] - 2025-12-06
 
 - Numbered tab names.

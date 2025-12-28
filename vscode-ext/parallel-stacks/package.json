@@ -2,7 +2,7 @@
   "name": "parallel-stacks",
   "displayName": "Parallel Stacks",
   "description": "The Parallel Stacks extension is useful for debugging multithreaded applications.",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "publisher": "bravikov",
   "engines": {
     "vscode": "^1.99.0"
