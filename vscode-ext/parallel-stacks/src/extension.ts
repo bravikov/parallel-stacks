@@ -95,8 +95,8 @@ export function activate(context: vscode.ExtensionContext) {
             await persistWebviewHtml(html, [[svgPanZoomWebviewUri, svgPanZoomFileUri]]);
 
             panel.webview.onDidReceiveMessage(async (message) => {
-                if (message?.type === 'saveSvg' && typeof message.content === 'string') {
-                    const updatedDir = await handleSaveSvg(context, message.content, lastSaveDir, tabIndex);
+                if (message?.type === 'saveSvg') {
+                    const updatedDir = await handleSaveSvg(context, svg, lastSaveDir, tabIndex);
                     if (updatedDir) {
                         lastSaveDir = updatedDir;
                     }
