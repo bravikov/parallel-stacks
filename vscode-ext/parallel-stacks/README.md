@@ -12,14 +12,6 @@ The principle of converting stacks into a graph is illustrated here:
 
 ![Stacks collapsing into a parallel stacks graph](https://raw.githubusercontent.com/bravikov/parallel-stacks/master/vscode-ext/parallel-stacks/images/stacks-to-parallel-stacks.png)
 
-What the graph looks like for a real Go program:
-
-![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-1.png)
-![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-2.png)
-![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-3.png)
-
-This is the [Chat Example](https://github.com/gorilla/websocket/tree/main/examples/chat) application from the [Gorilla WebSocket](https://github.com/gorilla/websocket) project.
-
 The extension supports all programming languages supported by Visual Studio Code.
 
 How to use the extension:
@@ -27,8 +19,24 @@ How to use the extension:
 1. Install the extension.
 2. Start debugging your application.
 3. Break execution at a breakpoint.
-4. Launch Parallel Stacks through the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `Parallel Stacks`.
+4. Press the button on the debug toolbar.
+
+![debug toolbar button](https://raw.githubusercontent.com/bravikov/parallel-stacks/master/vscode-ext/parallel-stacks/images/debug-toolbar.png)
+
+Or launch Parallel Stacks through the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `Parallel Stacks`.
+
+Result:
+
+![result graph](https://raw.githubusercontent.com/bravikov/parallel-stacks/master/vscode-ext/parallel-stacks/images/graph.png)
 
 Stack depth limit: 200 frames. Deeper frames are not displayed.
 
 The graph style, i.e. the color of the background, blocks, and text, varies depending on the VS Code theme. The style can be changed on the fly without restarting VS Code and without regenerating the graph.
+
+What the graph looks like for a real Go program:
+
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-1.png)
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-2.png)
+![Debugging of Go App](https://raw.githubusercontent.com/bravikov/parallel-stacks/main/vscode-ext/parallel-stacks/images/example-gorilla-websocket-chat-3.png)
+
+This is the [Chat Example](https://github.com/gorilla/websocket/tree/main/examples/chat) application from the [Gorilla WebSocket](https://github.com/gorilla/websocket) project.

@@ -11,15 +11,27 @@
     "Debuggers"
   ],
   "icon": "images/icon.png",
-  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "parallel-stacks.show",
-        "title": "Parallel Stacks"
+        "title": "Parallel Stacks",
+        "icon": {
+          "light": "images/icon.png",
+          "dark": "images/icon.png"
+        }
       }
-    ]
+    ],
+    "menus": {
+      "debug/toolBar": [
+        {
+          "command": "parallel-stacks.show",
+          "when": "debugState == 'running' || debugState == 'stopped'",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
