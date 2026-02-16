@@ -100,6 +100,9 @@ std::ostream& Node<T>::print_node(std::ostream& os, int indent) const {
 }
 
 
+/**
+ * @param depth_limit Maximum depth to merge from each stack; 0 means no depth limit.
+ */
 template<typename T>
 Node<T> merge(
     const std::vector<std::vector<T>>& lists,
