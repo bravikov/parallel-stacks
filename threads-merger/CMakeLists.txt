@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 4.2.3)
 
 project(threads-merger LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile_commands.json for IDEs" FORCE)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -42,36 +44,36 @@ endif()
 
 add_compile_options(--sysroot=${SDK_PATH})
 
-add_executable(threads-merger
-    main.cpp
-
+add_library(threads-merger-lib STATIC
     merger.hpp
     merger.cpp
-
     html/html_table.hpp
     html/html_table.cpp
-
-    conanfile.txt
 )
 
-target_link_libraries(threads-merger PRIVATE
+target_include_directories(threads-merger-lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Unit tests.
+add_executable(threads-merger-tests
+    unittests.cpp
+)
+
+target_link_libraries(threads-merger-tests PRIVATE
+  threads-merger-lib
   gtest::gtest
 )
 
-target_include_directories(threads-merger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(threads-merger-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# CLI utility target (no GTest). Reads input and prints SVG to stdout.
+# CLI utility. Reads input and prints SVG to stdout.
 add_executable(threads-merger-cli
     cli.cpp
-
-    merger.hpp
-    merger.cpp
-
-    html/html_table.hpp
-    html/html_table.cpp
 )
 
 target_link_libraries(threads-merger-cli PRIVATE
+  threads-merger-lib
   ${GRAPHVIZ_LIBRARIES}
 )
 

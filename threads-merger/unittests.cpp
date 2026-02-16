@@ -152,7 +152,7 @@ TEST(merge, frame_stacks) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(SVG, Basic) {
+TEST(dot, basic) {
     auto input = std::vector<std::vector<int>>{
        {7, 6, 5, 4, 3, 2, 1},
        {7, 6, 5, 3, 2, 1},
@@ -162,10 +162,9 @@ TEST(SVG, Basic) {
     const auto dot = get_dot_graph(tree);
     std::fstream dot_file{"test-int.dot", dot_file.out};
     dot_file << dot;
-
 }
 
-TEST(SVG, frame_stacks) {
+TEST(dot, frame_stacks) {
     // Тест на использование структуры Frame вместо int
     auto input = std::vector<std::vector<Frame>>{
         {Frame{"func2", "file2.cpp", 20, 10}, Frame{"func1", "file1.cpp", 10, 5}},

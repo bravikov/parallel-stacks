@@ -36,6 +36,9 @@ cmake --preset conan-debug
 # Build.
 cmake --build --preset=conan-debug
 
+# Run unit tests.
+./build/Debug/threads-merger-tests
+
 # Run CLI.
 ./build/Debug/threads-merger-cli
 ```
