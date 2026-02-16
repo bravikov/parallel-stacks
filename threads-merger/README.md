@@ -12,7 +12,15 @@
 
 ## Developing
 
+## Quick Start
+
 ```sh
+# Prepare a conan profile.
+conan profile detect --name apple-clang-debug
+
+# Change the build type to Debug.
+nano ~/.conan2/profiles/apple-clang-debug
+
 # Clone the source code.
 git clone git@github.com:bravikov/parallel-stacks.git
 
@@ -22,8 +30,14 @@ cd threads-merger
 # Install dependencies with conan.
 conan install . --build=missing --profile=apple-clang-debug
 
-# Build.
+# Prepare building.
 cmake --preset conan-debug
+
+# Build.
+cmake --build --preset=conan-debug
+
+# Run CLI.
+./build/Debug/threads-merger-cli
 ```
 
 Dependency for macOS:
