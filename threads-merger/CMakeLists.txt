@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1.0)
+cmake_minimum_required(VERSION 4.2.3)
 
 project(threads-merger LANGUAGES CXX)
 

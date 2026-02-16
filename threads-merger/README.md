@@ -12,6 +12,20 @@
 
 ## Developing
 
+```sh
+# Clone the source code.
+git clone git@github.com:bravikov/parallel-stacks.git
+
+# Go to the library folder.
+cd threads-merger
+
+# Install dependencies with conan.
+conan install . --build=missing --profile=apple-clang-debug
+
+# Build.
+cmake --preset conan-debug
+```
+
 Dependency for macOS:
 
     brew install graphviz
@@ -27,3 +41,5 @@ Run in the threads-merger folder:
     python3 -m http.server
 
 Open [http://localhost:8000](http://localhost:8000) in a browser.
+
+
