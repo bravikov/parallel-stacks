@@ -152,6 +152,71 @@ TEST(merge, frame_stacks) {
     EXPECT_EQ(actual, expected);
 }
 
+TEST(stack_depth_limit, default_limit)
+{
+    auto input = std::vector<std::vector<int>>{
+        {F, E, D, C, B, A},
+    };
+
+    Node<int> nodeF {.count=1, .level=6, .next_nodes={} };
+    Node<int> nodeE {.count=1, .level=5, .next_nodes={{F, nodeF}, }};
+    Node<int> nodeD {.count=1, .level=4, .next_nodes={{E, nodeE}, }};
+    Node<int> nodeC {.count=1, .level=3, .next_nodes={{D, nodeD}, }};
+    Node<int> nodeB {.count=1, .level=2, .next_nodes={{C, nodeC}, }};
+    Node<int> nodeA {.count=1, .level=1, .next_nodes={{B, nodeB}, }};
+
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA}, }};
+
+    const auto& expected = root;
+
+    auto actual = merge<int>(input);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(stack_depth_limit, limit_3)
+{
+    auto input = std::vector<std::vector<int>>{
+        {F, E, D, C, B, A},
+    };
+
+    Node<int> nodeC {.count=1, .level=3, .next_nodes={} };
+    Node<int> nodeB {.count=1, .level=2, .next_nodes={{C, nodeC}, }};
+    Node<int> nodeA {.count=1, .level=1, .next_nodes={{B, nodeB}, }};
+
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA}, }};
+
+    const auto& expected = root;
+
+    auto actual = merge<int>(input, 3);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(stack_depth_limit, two_intersected_stacks_limit_4)
+{
+    auto input = std::vector<std::vector<int>>{
+        {F, E, D, C, B, A},
+        {F, E, G, C, B, A},
+    };
+
+    Node<int> nodeD {.count=1, .level=4, .next_nodes={} };
+
+    Node<int> nodeG {.count=1, .level=4, .next_nodes={} };
+
+    Node<int> nodeC {.count=2, .level=3, .next_nodes={{D, nodeD}, {G, nodeG}, }};
+    Node<int> nodeB {.count=2, .level=2, .next_nodes={{C, nodeC}, }};
+    Node<int> nodeA {.count=2, .level=1, .next_nodes={{B, nodeB}, }};
+
+    Node<int> root  {.count=2, .level=0, .next_nodes={{A, nodeA}, }};
+
+    const auto& expected = root;
+
+    auto actual = merge<int>(input, 4);
+
+    EXPECT_EQ(actual, expected);
+}
+
 TEST(dot, basic) {
     auto input = std::vector<std::vector<int>>{
        {7, 6, 5, 4, 3, 2, 1},

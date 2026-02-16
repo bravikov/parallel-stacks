@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <iterator>
 
 
 struct Frame
@@ -100,7 +101,9 @@ std::ostream& Node<T>::print_node(std::ostream& os, int indent) const {
 
 
 template<typename T>
-Node<T> merge(const std::vector<std::vector<T>>& lists)
+Node<T> merge(
+    const std::vector<std::vector<T>>& lists,
+    const std::size_t depth_limit = 0)
 {
     Node<T> root{};
 
@@ -111,12 +114,18 @@ Node<T> merge(const std::vector<std::vector<T>>& lists)
 
         // Добавляем элементы в дерево, начиная с последнего (корневого)
         Node<T>* current = &root;
-        for (std::size_t i = list.size(); i > 0; i--) {
-            const auto& value = list[i - 1];
-            std::size_t level = list.size() - i + 1; // Уровень: последний элемент = 1, предпоследний = 2, и т.д.
+
+        auto last_item = list.rend();
+        if (depth_limit > 0 && list.size() > depth_limit) {
+            last_item = std::next(list.rbegin(), depth_limit);
+        }
+
+        std::size_t level = 0;
+        for (auto valueIt = list.rbegin(); valueIt != last_item; valueIt++) {
+            level++;
 
             // Получаем ссылку на узел (создает новый, если не существует)
-            auto& node_ref = current->next_nodes[value];
+            auto& node_ref = current->next_nodes[*valueIt];
             if (node_ref.count == 0) {
                 // Новый узел
                 node_ref.count = 1;
