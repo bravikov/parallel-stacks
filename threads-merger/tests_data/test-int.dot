@@ -1,0 +1,70 @@
+digraph G {
+  rankdir=BT;
+  node [shape=plaintext];
+  table_0 [label=<
+    <table BORDER="1" CELLBORDER="1" CELLPADDING="10" CELLSPACING="0" STYLE="ROUNDED">
+      <tr>
+        <td COLSPAN="2" BORDER="0"><FONT POINT-SIZE="40">2 Threads</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">2</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">3</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">1</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">2</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">0</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">1</FONT></td>
+      </tr>
+    </table>
+  >]
+
+  table_2 [label=<
+    <table BORDER="1" CELLBORDER="1" CELLPADDING="10" CELLSPACING="0" STYLE="ROUNDED">
+      <tr>
+        <td COLSPAN="2" BORDER="0"><FONT POINT-SIZE="40">1 Thread</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">6</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">7</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">5</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">6</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">4</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">5</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">3</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">4</FONT></td>
+      </tr>
+    </table>
+  >]
+
+  table_1 [label=<
+    <table BORDER="1" CELLBORDER="1" CELLPADDING="10" CELLSPACING="0" STYLE="ROUNDED">
+      <tr>
+        <td COLSPAN="2" BORDER="0"><FONT POINT-SIZE="40">1 Thread</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">5</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">7</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">4</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">6</FONT></td>
+      </tr>
+      <tr>
+        <td SIDES="T"><FONT POINT-SIZE="40">3</FONT></td>
+        <td SIDES="LT"><FONT POINT-SIZE="40">5</FONT></td>
+      </tr>
+    </table>
+  >]
+
+  table_0 -> table_1 [arrowsize=2 minlen=2]
+  table_0 -> table_2 [arrowsize=2 minlen=2]
+}

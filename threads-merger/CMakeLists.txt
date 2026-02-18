@@ -55,7 +55,22 @@ target_include_directories(threads-merger-lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+
 # Unit tests.
+
+SET(TESTS_DATA_FILES
+    tests_data/test-int.dot
+    tests_data/test-frame.dot
+)
+
+foreach(test_file ${TESTS_DATA_FILES})
+    configure_file(
+        ${test_file}
+        ${test_file}
+        COPYONLY
+    )
+endforeach(test_file ${TESTS_DATA_FILES})
+
 add_executable(threads-merger-tests
     unittests.cpp
 )
@@ -67,7 +82,9 @@ target_link_libraries(threads-merger-tests PRIVATE
 
 target_include_directories(threads-merger-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+
 # CLI utility. Reads input and prints SVG to stdout.
+
 add_executable(threads-merger-cli
     cli.cpp
 )

@@ -4,6 +4,8 @@
 
 #include "merger.hpp"
 
+std::filesystem::path baseFolder;
+
 enum {
     A=0,
     B=1,
@@ -223,10 +225,18 @@ TEST(dot, basic) {
        {7, 6, 5, 3, 2, 1},
     };
 
+    std::ifstream expectedDotFile{baseFolder / "tests_data/test-int.dot"};
+    ASSERT_FALSE(expectedDotFile.fail());
+
+    std::string expectedDot{
+        std::istreambuf_iterator<char>(expectedDotFile),
+        std::istreambuf_iterator<char>()
+    };
+
     const auto tree = merge<int>(input);
-    const auto dot = get_dot_graph(tree);
-    std::fstream dot_file{"test-int.dot", dot_file.out};
-    dot_file << dot;
+    const auto actualDot = get_dot_graph(tree);
+
+    ASSERT_EQ(actualDot, expectedDot);
 }
 
 TEST(dot, frame_stacks) {
@@ -236,13 +246,22 @@ TEST(dot, frame_stacks) {
         {Frame{"func3", "file3.cpp", 30, 15}, Frame{"func1", "file1.cpp", 10, 5}}
     };
 
+    std::ifstream expectedDotFile{baseFolder / "tests_data/test-frame.dot"};
+    ASSERT_FALSE(expectedDotFile.fail());
+
+    std::string expectedDot{
+        std::istreambuf_iterator<char>(expectedDotFile),
+        std::istreambuf_iterator<char>()
+    };
+
     const auto tree = merge<Frame>(input);
-    const auto dot = get_dot_graph(tree);
-    std::fstream dot_file{"test-frame.dot", dot_file.out};
-    dot_file << dot;
+    const auto actualDot = get_dot_graph(tree);
+
+    ASSERT_EQ(actualDot, expectedDot);
 }
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
+    baseFolder = std::filesystem::path{argv[0]}.parent_path();
     return RUN_ALL_TESTS();
 }
