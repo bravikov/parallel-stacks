@@ -31,11 +31,11 @@ TEST(merge, two_intersected_stacks)
     Node<int> nodeE2{.count=1, .level=5, .next_nodes={{F, nodeF2},} };
     Node<int> nodeG {.count=1, .level=4, .next_nodes={{E, nodeE2},} };
 
-    Node<int> nodeC {.count=2, .level=3, .next_nodes={{D, nodeD}, {G, nodeG}, }};
-    Node<int> nodeB {.count=2, .level=2, .next_nodes={{C, nodeC}, }};
-    Node<int> nodeA {.count=2, .level=1, .next_nodes={{B, nodeB}, }};
+    Node<int> nodeC {.count=2, .level=3, .next_nodes={{D, nodeD}, {G, nodeG},} };
+    Node<int> nodeB {.count=2, .level=2, .next_nodes={{C, nodeC},} };
+    Node<int> nodeA {.count=2, .level=1, .next_nodes={{B, nodeB},} };
 
-    Node<int> root  {.count=2, .level=0, .next_nodes={{A, nodeA}, }};
+    Node<int> root  {.count=2, .level=0, .next_nodes={{A, nodeA},} };
 
     const auto& expected = root;
 
@@ -53,14 +53,14 @@ TEST(merge, independent_stacks) {
 
     // Ожидаемый результат: два независимых стека
     Node<int> nodeC{.count=1, .level=3, .next_nodes={} };
-    Node<int> nodeB{.count=1, .level=2, .next_nodes={{C, nodeC}} };
-    Node<int> nodeA{.count=1, .level=1, .next_nodes={{B, nodeB}} };
+    Node<int> nodeB{.count=1, .level=2, .next_nodes={{C, nodeC},} };
+    Node<int> nodeA{.count=1, .level=1, .next_nodes={{B, nodeB},} };
 
-    Node<int> nodeF{.count=1, .level=3, .next_nodes={}};
-    Node<int> nodeE{.count=1, .level=2, .next_nodes={{F, nodeF}} };
-    Node<int> nodeD{.count=1, .level=1, .next_nodes={{E, nodeE}} };
+    Node<int> nodeF{.count=1, .level=3, .next_nodes={} };
+    Node<int> nodeE{.count=1, .level=2, .next_nodes={{F, nodeF},} };
+    Node<int> nodeD{.count=1, .level=1, .next_nodes={{E, nodeE},} };
 
-    Node<int> root {.count=2, .level=0, .next_nodes={{A, nodeA}, {D, nodeD}}};
+    Node<int> root {.count=2, .level=0, .next_nodes={{A, nodeA}, {D, nodeD},} };
 
     const auto& expected = root;
     auto actual = merge<int>(input);
@@ -68,17 +68,73 @@ TEST(merge, independent_stacks) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(merge, stack_with_recursion) {
+TEST(merge, recursion_at_start) {
     auto input = std::vector<std::vector<int>>{
         {B, A, A, A},
     };
 
-    // Ожидаемый результат: стек с рекурсией
-    // Одинаковые элементы на одном уровне должны объединяться
     Node<int> nodeB {.count=1, .level=4, .next_nodes={} };
-    Node<int> nodeA1{.count=1, .level=1, .next_nodes={{B, nodeB}}, .collapsed=2};
+    Node<int> nodeA1{.count=1, .level=1, .next_nodes={{B, nodeB},}, .collapsed=2};
 
-    Node<int> root{.count=1, .level=0, .next_nodes={{A, nodeA1}} };
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA1},} };
+
+    const auto& expected = root;
+    auto actual = merge<int>(input);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(merge, recursion_at_end) {
+    auto input = std::vector<std::vector<int>>{
+        {C, C, C, C, C, B, A},
+    };
+
+    Node<int> nodeC {.count=1, .level=3, .next_nodes={}, .collapsed=4};
+    Node<int> nodeB {.count=1, .level=2, .next_nodes={{C, nodeC},} };
+    Node<int> nodeA {.count=1, .level=1, .next_nodes={{B, nodeB},} };
+
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA},} };
+
+    const auto& expected = root;
+    auto actual = merge<int>(input);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(merge, recursion_in_middle) {
+    auto input = std::vector<std::vector<int>>{
+        {E, D, C, C, C, C, B, A},
+    };
+
+    Node<int> nodeE {.count=1, .level=8, .next_nodes={} };
+    Node<int> nodeD {.count=1, .level=7, .next_nodes={{E, nodeE},} };
+    Node<int> nodeC {.count=1, .level=3, .next_nodes={{D, nodeD},}, .collapsed=3};
+    Node<int> nodeB {.count=1, .level=2, .next_nodes={{C, nodeC},} };
+    Node<int> nodeA {.count=1, .level=1, .next_nodes={{B, nodeB},} };
+
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA},} };
+
+    const auto& expected = root;
+    auto actual = merge<int>(input);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(merge, two_threads_with_recursion) {
+    auto input = std::vector<std::vector<int>>{
+        {B, A, A, A},
+        {C, B, A, A},
+    };
+
+    Node<int> nodeC  {.count=1, .level=4, .next_nodes={} };
+    Node<int> nodeB2 {.count=1, .level=3, .next_nodes={{C, nodeC},}  };
+
+    Node<int> nodeB1 {.count=1, .level=4, .next_nodes={}  };
+    Node<int> nodeA2 {.count=1, .level=3, .next_nodes={{B, nodeB1},} };
+
+    Node<int> nodeA1 {.count=2, .level=1, .next_nodes={{A, nodeA2}, {B, nodeB2}}, .collapsed=1};
+
+    Node<int> root   {.count=2, .level=0, .next_nodes={{A, nodeA1}} };
 
     const auto& expected = root;
     auto actual = merge<int>(input);
