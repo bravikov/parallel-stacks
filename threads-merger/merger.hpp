@@ -11,6 +11,8 @@
 #include <sstream>
 #include <vector>
 #include <iterator>
+#include <algorithm>
+#include <format>
 
 
 struct Frame
@@ -58,6 +60,7 @@ struct Node
 {
     std::size_t count = 0;
     std::size_t level = 0;
+    std::size_t collapsed = 0;
     std::unordered_map<T, Node> next_nodes;
 
     auto operator<=>(const Node&) const = default;
@@ -85,10 +88,10 @@ std::ostream& Node<T>::print_node(std::ostream& os, int indent) const {
 
     std::string indent_str(indent * 2, ' '); // 2 пробела на уровень отступа
 
-    os << indent_str << "Node{count=" << this->count << ", level=" << this->level;
+    os << indent_str << std::format("Node{{count={}, level={}, collapsed={}", count, level, collapsed);
 
     if (!this->next_nodes.empty()) {
-        os << std::endl << indent_str << "  next_nodes:";
+        os << std::endl << indent_str << "  next_nodes=";
         for (const auto& [value, next_node] : this->next_nodes) {
             os << std::endl << indent_str << "    " << value << " ->";
             next_node.print_node(os, indent + 2);
@@ -141,9 +144,79 @@ Node<T> merge(
         }
     }
 
+    collapse(root);
+
     return root;
 }
 
+template<typename T>
+using NodeMap = decltype(Node<T>{}.next_nodes);
+
+template<typename T>
+using NodeMapValue = typename NodeMap<T>::value_type;
+
+template<typename T>
+using NodeMapValueRef = std::reference_wrapper<NodeMapValue<T>>;
+
+template<typename T>
+using NodeMapValueConstRef = std::reference_wrapper<const NodeMapValue<T>>;
+
+template<typename T>
+void collapse(Node<T> & root)
+{
+    std::stack<NodeMapValueRef<T>> nodes_stack;
+
+    for (auto& next_node: root.next_nodes) {
+        nodes_stack.push(next_node);
+    }
+
+    NodeMapValue<T> * current_node_ptr = nullptr;
+
+    while (current_node_ptr != nullptr || !nodes_stack.empty()) {
+        if (current_node_ptr) {
+            const auto next_nodes_count = current_node_ptr->second.next_nodes.size();
+            if (next_nodes_count == 1) {
+                auto next_node_ptr = &(*current_node_ptr->second.next_nodes.begin());
+                if (current_node_ptr->first == next_node_ptr->first) {
+                    // Collapse a node.
+                    std::swap(current_node_ptr->second.next_nodes, next_node_ptr->second.next_nodes);
+                    current_node_ptr->second.collapsed++;
+                } else {
+                    current_node_ptr = next_node_ptr;
+                }
+            } else {
+                if (next_nodes_count > 1) {
+                    for (auto& next_node: current_node_ptr->second.next_nodes) {
+                        nodes_stack.push(next_node);
+                    }
+                }
+                current_node_ptr = nullptr;
+            }
+        }
+        else {
+            current_node_ptr = &nodes_stack.top().get();
+            nodes_stack.pop();
+        }
+    }
+}
+
+template<typename T>
+auto sorted_nodes(const NodeMap<T>& node_map)
+{
+    std::vector<NodeMapValueConstRef<T>> nodes;
+
+    for (const auto& node: node_map) {
+        nodes.push_back(node);
+    }
+
+    std::sort(nodes.begin(), nodes.end(),
+        [](const NodeMapValue<T> & a, const NodeMapValue<T> & b) {
+            return a.first > b.first;
+        }
+    );
+
+    return nodes;
+}
 
 template<typename T>
 struct HtmlTableRow {
@@ -160,12 +233,12 @@ std::string get_dot_graph(const Node<T>& root) {
 
     int table_id_count = 0;
 
-    using Pair = decltype(root.next_nodes)::value_type;
+    using Pair = NodeMapValue<T>;
 
-    std::stack<std::reference_wrapper<const Pair>> nodes_stack;
+    std::stack<NodeMapValueConstRef<T>> nodes_stack;
     std::stack<int> table_id_stack;
 
-    for (const auto& next_node: root.next_nodes) {
+    for (const auto& next_node: sorted_nodes<T>(root.next_nodes)) {
         nodes_stack.push(next_node);
         table_id_stack.push(table_id_count++);
     }
@@ -223,7 +296,7 @@ std::string get_dot_graph(const Node<T>& root) {
             next_node_ptr = &(*current_node_ptr->second.next_nodes.begin());
         }
         else if (current_node_ptr->second.next_nodes.size() > 1) {
-            for (const auto& next_node: current_node_ptr->second.next_nodes) {
+            for (const auto& next_node: sorted_nodes<T>(current_node_ptr->second.next_nodes)) {
                 nodes_stack.push(next_node);
                 table_id_stack.push(table_id_count++);
 

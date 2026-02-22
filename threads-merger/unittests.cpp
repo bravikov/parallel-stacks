@@ -76,9 +76,7 @@ TEST(merge, stack_with_recursion) {
     // Ожидаемый результат: стек с рекурсией
     // Одинаковые элементы на одном уровне должны объединяться
     Node<int> nodeB {.count=1, .level=4, .next_nodes={} };
-    Node<int> nodeA3{.count=1, .level=3, .next_nodes={{B, nodeB}} };
-    Node<int> nodeA2{.count=1, .level=2, .next_nodes={{A, nodeA3}} };
-    Node<int> nodeA1{.count=1, .level=1, .next_nodes={{A, nodeA2}} };
+    Node<int> nodeA1{.count=1, .level=1, .next_nodes={{B, nodeB}}, .collapsed=2};
 
     Node<int> root{.count=1, .level=0, .next_nodes={{A, nodeA1}} };
 
@@ -258,6 +256,61 @@ TEST(dot, frame_stacks) {
     const auto actualDot = get_dot_graph(tree);
 
     ASSERT_EQ(actualDot, expectedDot);
+}
+
+TEST(dot, stable_tree) {
+    auto input = std::vector<std::vector<int>>{
+       {7, 6, 5, 4, 3, 2, 1},
+       {7, 6, 5, 3, 2, 1},
+    };
+
+    std::ifstream expectedDotFile{baseFolder / "tests_data/test-int.dot"};
+    ASSERT_FALSE(expectedDotFile.fail());
+
+    std::string expectedDot{
+        std::istreambuf_iterator<char>(expectedDotFile),
+        std::istreambuf_iterator<char>()
+    };
+
+    const auto tree = merge<int>(input);
+    const auto actualDot = get_dot_graph(tree);
+
+    const auto treeCopy{tree}; // Copy
+    const auto actualDotCopy = get_dot_graph(treeCopy);
+
+    ASSERT_EQ(actualDot, expectedDot);
+    ASSERT_EQ(actualDotCopy, expectedDot);
+}
+
+TEST(node_class, Moving)
+{
+    Node<int> nodeD {.count=1, .level=4, .next_nodes={}};
+    Node<int> nodeC {.count=1, .level=3, .next_nodes={{D, nodeD}, }};
+    Node<int> nodeB {.count=1, .level=2, .next_nodes={{C, nodeC}, }};
+    Node<int> nodeA {.count=1, .level=1, .next_nodes={{B, nodeB}, }};
+
+    Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA}, }};
+
+    nodeA.next_nodes[B] = std::move(nodeC); // A -> B -> D
+
+    ASSERT_EQ(4, nodeA.next_nodes[B].next_nodes[D].level);
+}
+
+TEST(collapsing, one_thread_four_same_frames)
+{
+    Node<int> nodeA4 {.count=1, .level=4, .next_nodes={}};
+    Node<int> nodeA3 {.count=1, .level=3, .next_nodes={{A, nodeA4}, }};
+    Node<int> nodeA2 {.count=1, .level=2, .next_nodes={{A, nodeA3}, }};
+    Node<int> nodeA1 {.count=1, .level=1, .next_nodes={{A, nodeA2}, }};
+
+    Node<int> root   {.count=1, .level=0, .next_nodes={{A, nodeA1}, }};
+
+    collapse(root);
+
+    ASSERT_EQ(1, root.next_nodes.size());
+    ASSERT_EQ(1, root.next_nodes[A].level);
+    ASSERT_EQ(3, root.next_nodes[A].collapsed);
+    ASSERT_EQ(0, root.next_nodes[A].next_nodes.size());
 }
 
 int main(int argc, char **argv) {
