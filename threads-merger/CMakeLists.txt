@@ -61,6 +61,7 @@ target_include_directories(threads-merger-lib PUBLIC
 SET(TESTS_DATA_FILES
     tests_data/test-int.dot
     tests_data/test-frame.dot
+    tests_data/test-recursion.dot
 )
 
 foreach(test_file ${TESTS_DATA_FILES})

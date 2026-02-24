@@ -13,6 +13,7 @@
 #include <iterator>
 #include <algorithm>
 #include <format>
+#include <ranges>
 
 
 struct Frame
@@ -209,7 +210,7 @@ auto sorted_nodes(const NodeMap<T>& node_map)
         nodes.push_back(node);
     }
 
-    std::sort(nodes.begin(), nodes.end(),
+    std::ranges::sort(nodes,
         [](const NodeMapValue<T> & a, const NodeMapValue<T> & b) {
             return a.first > b.first;
         }
@@ -218,9 +219,15 @@ auto sorted_nodes(const NodeMap<T>& node_map)
     return nodes;
 }
 
+struct LevelRange
+{
+    std::size_t first = 0;
+    std::size_t last = 0;
+};
+
 template<typename T>
 struct HtmlTableRow {
-    static Html::TableRow to_row(const T& item, size_t level = 0);
+    static Html::TableRow to_row(const T& item, const LevelRange& level_range={});
     static std::size_t column_count();
 };
 
@@ -265,8 +272,11 @@ std::string get_dot_graph(const Node<T>& root) {
             table.add_row(row);
         }
         for (auto it = current_table.rbegin(); it != current_table.rend(); ++it) {
-            const size_t level = it->get().second.level - 1;
-            table.add_row(HtmlTableRow<T>::to_row(it->get().first, level));
+            const T& item = it->get().first;
+            const auto level = it->get().second.level - 1;
+            const auto collapsed = it->get().second.collapsed;
+            const LevelRange& level_range{level, level + collapsed};
+            table.add_row(HtmlTableRow<T>::to_row(item, level_range));
         }
 
         current_table.clear();

@@ -39,7 +39,7 @@ TEST(merge, two_intersected_stacks)
 
     const auto& expected = root;
 
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -63,7 +63,7 @@ TEST(merge, independent_stacks) {
     Node<int> root {.count=2, .level=0, .next_nodes={{A, nodeA}, {D, nodeD},} };
 
     const auto& expected = root;
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -79,7 +79,7 @@ TEST(merge, recursion_at_start) {
     Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA1},} };
 
     const auto& expected = root;
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -96,7 +96,7 @@ TEST(merge, recursion_at_end) {
     Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA},} };
 
     const auto& expected = root;
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -115,7 +115,7 @@ TEST(merge, recursion_in_middle) {
     Node<int> root  {.count=1, .level=0, .next_nodes={{A, nodeA},} };
 
     const auto& expected = root;
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -137,7 +137,7 @@ TEST(merge, two_threads_with_recursion) {
     Node<int> root   {.count=2, .level=0, .next_nodes={{A, nodeA1}} };
 
     const auto& expected = root;
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -148,7 +148,7 @@ TEST(merge, empty_lists) {
 
     Node<int> expected{};
 
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
     EXPECT_EQ(actual, expected);
 }
 
@@ -162,7 +162,7 @@ TEST(merge, empty_stacks) {
 
     Node<int> expected{};
 
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
     EXPECT_EQ(actual, expected);
 }
 
@@ -185,7 +185,7 @@ TEST(merge, mixed_empty_stacks) {
 
     Node<int> expected{.count=2, .level=0, .next_nodes={{A, nodeA}, {C, nodeC}}};
 
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
     EXPECT_EQ(actual, expected);
 }
 
@@ -204,7 +204,7 @@ TEST(merge, frame_stacks) {
     Node<Frame> expected{.count=2, .level=0,
         .next_nodes={{Frame{"func1", "file1.cpp", 10, 5}, nodeFunc1}}};
 
-    auto actual = merge<Frame>(input);
+    auto actual = merge(input);
     EXPECT_EQ(actual, expected);
 }
 
@@ -225,7 +225,7 @@ TEST(stack_depth_limit, default_limit)
 
     const auto& expected = root;
 
-    auto actual = merge<int>(input);
+    auto actual = merge(input);
 
     EXPECT_EQ(actual, expected);
 }
@@ -244,7 +244,7 @@ TEST(stack_depth_limit, limit_3)
 
     const auto& expected = root;
 
-    auto actual = merge<int>(input, 3);
+    auto actual = merge(input, 3);
 
     EXPECT_EQ(actual, expected);
 }
@@ -268,7 +268,7 @@ TEST(stack_depth_limit, two_intersected_stacks_limit_4)
 
     const auto& expected = root;
 
-    auto actual = merge<int>(input, 4);
+    auto actual = merge(input, 4);
 
     EXPECT_EQ(actual, expected);
 }
@@ -287,7 +287,7 @@ TEST(dot, basic) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge<int>(input);
+    const auto tree = merge(input);
     const auto actualDot = get_dot_graph(tree);
 
     ASSERT_EQ(actualDot, expectedDot);
@@ -308,7 +308,7 @@ TEST(dot, frame_stacks) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge<Frame>(input);
+    const auto tree = merge(input);
     const auto actualDot = get_dot_graph(tree);
 
     ASSERT_EQ(actualDot, expectedDot);
@@ -328,7 +328,7 @@ TEST(dot, stable_tree) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge<int>(input);
+    const auto tree = merge(input);
     const auto actualDot = get_dot_graph(tree);
 
     const auto treeCopy{tree}; // Copy
@@ -336,6 +336,26 @@ TEST(dot, stable_tree) {
 
     ASSERT_EQ(actualDot, expectedDot);
     ASSERT_EQ(actualDotCopy, expectedDot);
+}
+
+TEST(dot, recursion) {
+    auto input = std::vector<std::vector<std::string>>{
+       {"e", "d", "c", "b", "a"},
+       {"e", "d", "c", "c", "c", "c", "c", "b", "a"},
+    };
+
+    std::ifstream expectedDotFile{baseFolder / "tests_data/test-recursion.dot"};
+    ASSERT_FALSE(expectedDotFile.fail());
+
+    std::string expectedDot{
+        std::istreambuf_iterator<char>(expectedDotFile),
+        std::istreambuf_iterator<char>()
+    };
+
+    const auto tree = merge(input);
+    const auto actualDot = get_dot_graph(tree);
+
+    ASSERT_EQ(actualDot, expectedDot);
 }
 
 TEST(node_class, Moving)
