@@ -1,5 +1,10 @@
 # Parallel stacks
 
+Parallel Stacks VS Code extension is published at:
+
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/bravikov.parallel-stacks?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=bravikov.parallel-stacks)
+[![Open VSX](https://img.shields.io/open-vsx/v/bravikov/parallel-stacks?label=Open%20VSX)](https://open-vsx.org/extension/bravikov/parallel-stacks)
+
 ![Tray Menu](graph_example.png)
 
 Parallel Stacks is a project for visualizing thread stack traces as a merged graph.
@@ -26,6 +31,13 @@ Extension that integrates `threads-merger` compiled to WebAssembly and renders s
 
 - Script: `parallel-stacks.py`
 - Dependencies for legacy script: `requirements.txt`
+
+### 4. `examples`
+
+Directory with sample stack scenarios for experiments and debugging.
+
+- `examples/cpp`: C++ programs with different call stack patterns (including a stack overflow case).
+- `examples/python`: Python example that can be used to produce sample stacks.
 
 ## Legacy Python Utility Usage
 
