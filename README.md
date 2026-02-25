@@ -2,47 +2,69 @@
 
 ![Tray Menu](graph_example.png)
 
-## Quick Start
+Parallel Stacks is a project for visualizing thread stack traces as a merged graph.
 
-Get
+## Project Structure
+
+### 1. `threads-merger` (C++)
+
+Core library that accepts thread stacks and builds a graph from them.
+
+- Includes the `threads-merger-cli` utility for local usage and testing.
+- Documentation: [threads-merger/README.md](threads-merger/README.md)
+
+### 2. VS Code extension
+
+Extension that integrates `threads-merger` compiled to WebAssembly and renders stack graphs directly in VS Code.
+
+- Location: `vscode-ext/parallel-stacks`
+- Documentation: [vscode-ext/parallel-stacks/README.md](vscode-ext/parallel-stacks/README.md)
+
+### 3. Legacy Python utility
+
+`parallel-stacks.py` parses GDB output and builds a graph, but this tool is outdated and is no longer the main direction of development.
+
+- Script: `parallel-stacks.py`
+- Dependencies for legacy script: `requirements.txt`
+
+## Legacy Python Utility Usage
+
+Clone and install dependencies:
 
     git clone https://github.com/bravikov/parallel-stacks.git
     cd parallel-stacks
-
-Install dependencies
-
     pip3 install -r requirements.txt
 
-Get parallel stacks from a running process
-
-    python3 parallel-stacks.py --pid 12345
-
-## Help
+Show help:
 
     python3 parallel-stacks.py -h
 
-## Example 1 (for GDB 9.1 or above)
+Get parallel stacks from a running process:
 
-    # Attach to a process. For example, the process have a PID 12345.
+    python3 parallel-stacks.py --pid 12345
+
+Example for GDB 9.1+:
+
+    # Attach to a process. For example, the process has PID 12345.
     $ gdb -p 12345
 
     # Run the script and pass backtraces for all threads.
     (gdb) pipe thread apply all bt | python3 parallel-stacks.py
 
-## Example 2 (for GDB below 9.1)
+Example for GDB below 9.1:
 
-    # Attach to a process. For example, the process have a PID 12345.
+    # Attach to a process. For example, the process has PID 12345.
     $ gdb -p 12345
 
     # Enable logging to a file.
     (gdb) set logging overwrite on
     (gdb) set logging on
 
-    # Get backtraces for all threads
+    # Get backtraces for all threads.
     (gdb) thread apply all bt
 
     # Run the script and pass a gdb.txt file.
     (gdb) shell python3 parallel-stacks.py -l gdb.txt
 
-    # Disable logging
+    # Disable logging.
     (gdb) set logging off
