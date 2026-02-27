@@ -124,6 +124,7 @@ if(EMCC_EXECUTABLE)
         COMMAND "${EMCC_EXECUTABLE}"
             --std=c++23
             -O2
+            -flto
             -lembind
             ${WASM_CPP_SOURCES}
             -o "${WASM_JS_OUTPUT}"
