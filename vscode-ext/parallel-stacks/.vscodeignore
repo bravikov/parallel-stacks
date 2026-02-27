@@ -11,3 +11,6 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 TODO
 DEVGUIDE.md
+
+images/**
+!images/icon.png
