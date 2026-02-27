@@ -4,7 +4,8 @@
 void add_level_cell(Html::TableRow& row, const LevelRange& level_range)
 {
     if (level_range.first != level_range.last) {
-        row.add_cell(Html::TableCell{std::format("{}–{}", level_range.first, level_range.last)});
+        const auto range_string = std::to_string(level_range.first) + "–" + std::to_string(level_range.last);
+        row.add_cell(Html::TableCell{range_string});
     } else {
         row.add_cell(Html::TableCell{std::to_string(level_range.first)});
     }
