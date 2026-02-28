@@ -3,3 +3,4 @@ out/
 *.vsix
 media/merger.js
 media/merger.wasm
+media/merger.d.ts

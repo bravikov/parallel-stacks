@@ -4,13 +4,15 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as os from 'os';
+import createMerger from '../media/merger';
 
 const LAST_SAVE_DIR_KEY = 'parallelStacks.lastSaveDir';
+
+type MergerModule = Awaited<ReturnType<typeof createMerger>>;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
     let webviewCounter = 0;
     let lastSaveDir: string | null = context.globalState.get<string>(LAST_SAVE_DIR_KEY) ?? null;
 
@@ -18,8 +20,14 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "parallel-stacks" is now active!');
 
+    let Merger: MergerModule | null = null;
+
     // Command to display thread stacks in a new tab (Webview)
     const disposable = vscode.commands.registerCommand('parallel-stacks.show', async () => {
+        if (!Merger) {
+            Merger = await createMerger();
+        }
+
         const session = vscode.debug.activeDebugSession;
         if (!session) {
             vscode.window.showWarningMessage('No active debug session.');
@@ -35,39 +43,55 @@ export function activate(context: vscode.ExtensionContext) {
             const threadsResponse = await session.customRequest('threads');
             const threads = threadsResponse.threads || [];
 
-            const stacks: Array<Array<{ function: string; filename: string; row: number; column: number }>> = [];
+            const stacks = new Merger.VectorVectorFrame();
 
-            // Request the call stack for each thread
-            // Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
-            // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
-
-            for (const thread of threads) {
-
-                // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StackTrace
-                const stackTraceResponse = await session.customRequest('stackTrace', {
-                    threadId: thread.id,
-                    startFrame: 0,
-                    levels: 200 // Adjust the stack depth if needed
-                });
-
+            let dot = 'digraph { }';
+            try {
+                // Request the call stack for each thread
+                // Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
                 // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
-                // Specification of Source type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Source
-                const frames = stackTraceResponse.stackFrames || [];
+                for (const thread of threads) {
 
-                // Build the path for the merger (sequence of frames)
-                const stack = frames.map((frame: any) => ({
-                    function: String(frame.name || ''),
-                    filename: frame.source?.path ? path.basename(frame.source.path) : String(frame.source?.name || ''),
-                    row: Number(frame.line || 0),
-                    column: Number(frame.column || 0)
-                }));
-                if (stack.length > 0) {
-                    stacks.push(stack);
+                    // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StackTrace
+                    const stackTraceResponse = await session.customRequest('stackTrace', {
+                        threadId: thread.id,
+                        startFrame: 0,
+                        levels: depthLimit
+                    });
+
+                    // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+                    // Specification of Source type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Source
+                    const frames = stackTraceResponse.stackFrames || [];
+                    const stack = new Merger.VectorFrame();
+
+                    for (const frame of frames) {
+                        const mergerFrame = new Merger.Frame();
+                        try {
+                            mergerFrame.function = String(frame.name || '');
+                            mergerFrame.filename = frame.source?.path
+                                ? path.basename(frame.source.path)
+                                : String(frame.source?.name || '');
+                            mergerFrame.row = Number(frame.line || 0);
+                            mergerFrame.column = Number(frame.column || 0);
+                            stack.push_back(mergerFrame);
+                        } finally {
+                            mergerFrame.delete();
+                        }
+                    }
+
+                    if (stack.size() > 0) {
+                        stacks.push_back(stack);
+                    }
+                    stack.delete();
                 }
-            }
 
-            // Load and use the merger (WASM) within the extension to obtain DOT
-            let dot = await getDotFromMerger(context, stacks);
+                dot = Merger.merge_to_graphviz_dot(stacks) || dot;
+            } catch (mergeError: any) {
+                console.error('merge_to_graphviz_dot failed:', mergeError);
+                dot = 'digraph { label="merge_to_graphviz_dot failed" }';
+            } finally {
+                stacks.delete();
+            }
 
             const tabIndex = ++webviewCounter;
             const panelTitle = `Parallel Stacks ${tabIndex}`;
@@ -139,39 +163,7 @@ async function buildWebviewHtml(
     ]);
 }
 
-// ======== Merger (WASM) loading ========
-let cachedMergerModule: any | null = null;
 let cachedWebviewTemplate: string | null = null;
-
-async function getMergerModule(context: vscode.ExtensionContext): Promise<any> {
-    if (cachedMergerModule) {
-        return cachedMergerModule;
-    }
-
-    const mergerJsPath = path.join(context.extensionPath, 'media', 'merger.js');
-    const mergerWasmPath = path.join(context.extensionPath, 'media', 'merger.wasm');
-
-    const g: any = global as any;
-    const prevModule = g.Module;
-    g.Module = {
-        locateFile: (p: string) => (p.endsWith('merger.wasm') ? mergerWasmPath : p)
-    };
-    const mod = require(mergerJsPath);
-    await new Promise<void>((resolve) => {
-        if (mod && (mod.calledRun || mod.runtimeInitialized)) {
-            resolve();
-            return;
-        }
-        mod.onRuntimeInitialized = () => resolve();
-    });
-    cachedMergerModule = mod;
-    if (prevModule === undefined) {
-        delete g.Module;
-    } else {
-        g.Module = prevModule;
-    }
-    return mod;
-}
 
 async function getWebviewTemplate(context: vscode.ExtensionContext): Promise<string> {
     if (cachedWebviewTemplate !== null) {
@@ -181,36 +173,6 @@ async function getWebviewTemplate(context: vscode.ExtensionContext): Promise<str
     const templatePath = path.join(context.extensionPath, 'media', 'webview.html');
     cachedWebviewTemplate = await fs.readFile(templatePath, 'utf8');
     return cachedWebviewTemplate;
-}
-
-async function getDotFromMerger(
-    context: vscode.ExtensionContext,
-    paths: Array<Array<{ function: string; filename: string; row: number; column: number }>>
-): Promise<string> {
-    try {
-        const mod = await getMergerModule(context);
-        const VV = mod.VectorVectorFrame;
-        const V = mod.VectorFrame;
-        const F = mod.Frame;
-        const vv = new VV();
-        for (const pathArr of paths) {
-            const v = new V();
-            for (const fr of pathArr) {
-                const f = new F();
-                f.function = fr.function;
-                f.filename = fr.filename;
-                f.row = fr.row;
-                f.column = fr.column;
-                v.push_back(f);
-            }
-            vv.push_back(v);
-        }
-        const dot: string = mod.merge_to_graphviz_dot(vv);
-        return dot || 'digraph { }';
-    } catch (e: any) {
-        console.error('getDotFromMerger failed:', e);
-        return 'digraph { label="merge_to_graphviz_dot failed" }';
-    }
 }
 
 function applyReplacements(value: string, replacements: Array<[string, string]>): string {

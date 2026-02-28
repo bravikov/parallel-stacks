@@ -50,7 +50,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "unittests": "npm run compile && node --test out/**/*.test.js"
   },
   "dependencies": {
     "@viz-js/viz": "^3.16.0"

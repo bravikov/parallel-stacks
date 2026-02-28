@@ -103,6 +103,7 @@ target_compile_options(threads-merger-cli PRIVATE ${GRAPHVIZ_CFLAGS_OTHER})
 find_program(EMCC_EXECUTABLE emcc)
 if(EMCC_EXECUTABLE)
     set(WASM_JS_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/merger.js")
+    set(WASM_TS_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/merger.d.ts")
     set(WASM_WASM_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/merger.wasm")
     set(WASM_CPP_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/html/html_table.cpp"
@@ -116,6 +117,7 @@ if(EMCC_EXECUTABLE)
     )
     set(WASM_RESULT
         "${WASM_JS_OUTPUT}"
+        "${WASM_TS_OUTPUT}"
         "${WASM_WASM_OUTPUT}"
     )
 
@@ -126,11 +128,15 @@ if(EMCC_EXECUTABLE)
             -O2
             -flto
             -lembind
+            -s ENVIRONMENT=node
+            -s MODULARIZE=1
+            -s EXPORT_ES6=1
             ${WASM_CPP_SOURCES}
+            --emit-tsd "${WASM_TS_OUTPUT}"
             -o "${WASM_JS_OUTPUT}"
         DEPENDS
             ${WASM_SOURCE_DEPENDENCIES}
-        COMMENT "Building WebAssembly module (merger.js/merger.wasm)"
+        COMMENT "Building WebAssembly module"
         VERBATIM
     )
 
