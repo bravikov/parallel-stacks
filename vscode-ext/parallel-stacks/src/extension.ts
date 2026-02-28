@@ -26,6 +26,9 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
+        const configuration = vscode.workspace.getConfiguration();
+        const depthLimit = configuration.get<number>('parallelStacks.stackDepthLimit') ?? 200;
+
         try {
             // Request thread information
             // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Threads
