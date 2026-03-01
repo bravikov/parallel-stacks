@@ -2,6 +2,13 @@
 
 The Parallel Stacks extension is useful for debugging multithreaded applications.
 
+The extension is intended for the Visual Studio Code IDE and other IDEs based on it: Cursor, Google Antigravity, WindSurf, and so on.
+
+Parallel Stacks is published at:
+
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/bravikov.parallel-stacks?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=bravikov.parallel-stacks)
+[![Open VSX](https://img.shields.io/open-vsx/v/bravikov/parallel-stacks?label=Open%20VSX)](https://open-vsx.org/extension/bravikov/parallel-stacks)
+
 If you like this extension, consider supporting development:
 
 [![Buy Me a Coffee](https://img.shields.io/badge/☕️-Buy%20Me%20a%20Coffee-yellow)](https://buymeacoffee.com/bravikov1)
