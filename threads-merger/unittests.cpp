@@ -287,8 +287,7 @@ TEST(dot, basic) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge(input);
-    const auto actualDot = get_dot_graph(tree);
+    const auto actualDot = merge_to_graphviz_dot(input);
 
     ASSERT_EQ(actualDot, expectedDot);
 }
@@ -308,8 +307,7 @@ TEST(dot, frame_stacks) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge(input);
-    const auto actualDot = get_dot_graph(tree);
+    const auto actualDot = merge_to_graphviz_dot(input);
 
     ASSERT_EQ(actualDot, expectedDot);
 }
@@ -329,7 +327,7 @@ TEST(dot, stable_tree) {
     };
 
     const auto tree = merge(input);
-    const auto actualDot = get_dot_graph(tree);
+    const auto actualDot = merge_to_graphviz_dot(input);
 
     const auto treeCopy{tree}; // Copy
     const auto actualDotCopy = get_dot_graph(treeCopy);
@@ -352,8 +350,7 @@ TEST(dot, recursion) {
         std::istreambuf_iterator<char>()
     };
 
-    const auto tree = merge(input);
-    const auto actualDot = get_dot_graph(tree);
+    const auto actualDot = merge_to_graphviz_dot(input);
 
     ASSERT_EQ(actualDot, expectedDot);
 }
