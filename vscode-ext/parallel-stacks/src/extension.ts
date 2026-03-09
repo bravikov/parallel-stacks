@@ -5,8 +5,10 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as os from 'os';
 import createMerger from '../media/merger';
+import { calculateStackBounds } from './stackBounds';
 
 const LAST_SAVE_DIR_KEY = 'parallelStacks.lastSaveDir';
+const MAX_STACK_DEPTH_LIMIT = 1_000_000_000;
 
 type MergerModule = Awaited<ReturnType<typeof createMerger>>;
 
@@ -35,7 +37,10 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const configuration = vscode.workspace.getConfiguration();
-        const depthLimit = configuration.get<number>('parallelStacks.stackDepthLimit') ?? 200;
+        const configuredDepthLimit = configuration.get<number>('parallelStacks.stackDepthLimit') ?? 200;
+        const depthLimit = Number.isFinite(configuredDepthLimit) && configuredDepthLimit >= 0
+            ? Math.min(Math.trunc(configuredDepthLimit), MAX_STACK_DEPTH_LIMIT)
+            : 200;
 
         try {
             // Request thread information
@@ -51,17 +56,29 @@ export function activate(context: vscode.ExtensionContext) {
                 // Specification of Thread type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Thread
                 // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
                 for (const thread of threads) {
-
+                    // Probe with one frame to discover totalFrames (if the debug adapter provides it).
                     // https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StackTrace
-                    const stackTraceResponse = await session.customRequest('stackTrace', {
+                    const probeStackTraceResponse = await session.customRequest('stackTrace', {
                         threadId: thread.id,
                         startFrame: 0,
-                        levels: depthLimit
+                        levels: 1
                     });
+
+                    const { startFrame, levels } = calculateStackBounds({
+                        totalFrames: probeStackTraceResponse?.totalFrames,
+                        depthLimit: depthLimit
+                    });
+
+                    // TODO: limit by Merger.merge_to_graphviz_dot() when totalFrames is unavailable.
+                    const stackTraceResponse = await session.customRequest('stackTrace', {
+                        threadId: thread.id,
+                        startFrame: startFrame,
+                        levels: levels
+                    });
+                    const frames = stackTraceResponse.stackFrames || [];
 
                     // Specification of StackFrame type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
                     // Specification of Source type: https://microsoft.github.io/debug-adapter-protocol/specification#Types_Source
-                    const frames = stackTraceResponse.stackFrames || [];
                     const stack = new Merger.VectorFrame();
 
                     for (const frame of frames) {

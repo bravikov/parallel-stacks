@@ -28,8 +28,10 @@
       "type": "object",
       "properties": {
         "parallelStacks.stackDepthLimit": {
-          "description": "The maximum number of frames for each stack that can be displayed.",
+          "description": "The maximum number of frames for each stack that can be displayed. Set to 0 to disable the limit.",
           "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000,
           "default": 200
         }
       }

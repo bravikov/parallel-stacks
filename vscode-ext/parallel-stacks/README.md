@@ -36,7 +36,7 @@ Result:
 
 ![result graph](https://raw.githubusercontent.com/bravikov/parallel-stacks/master/vscode-ext/parallel-stacks/images/graph.png)
 
-By default, the stack depth is limited to 200 frames. This value can be changed in the settings. Frames with a greater depth are not displayed.
+By default, the stack depth is limited to 200 frames. This value can be changed in the settings. Frames with a greater depth are not displayed. Set the value to `0` to disable the limit and show all available frames.
 
 The graph style, i.e. the color of the background, blocks, and text, varies depending on the VS Code theme. The style can be changed on the fly without restarting VS Code and without regenerating the graph.
 
