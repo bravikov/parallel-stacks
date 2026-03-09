@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-03-09
 
-- Added a configurable stack depth limit setting (default: 200 frames).
-- Reduced size of extension в два раза
-- Ускорение построения графа за счет оптимизированной сборки
-- Свертка последовательности рекурсивных вызовов.
+- Added a configurable stack-depth limit setting (default: 200 frames).
+- Reduced the extension size by half.
+- Improved graph rendering performance.
+- Added collapsing for sequences of recursive calls.
 
 ## [1.1.0] - 2025-12-28
 
